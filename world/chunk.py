@@ -1,5 +1,5 @@
-import util
-import nbt
+from . import util
+from . import nbt
 
 class BlockStatePalette:
     __slots__ = ('items',)
