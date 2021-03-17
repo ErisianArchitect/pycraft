@@ -61,6 +61,11 @@ class RegionFile:
     def has_chunk(self, offsetX : int, offsetZ : int) -> bool:
         if not os.path.exists(self.filename):
             return False
+        ind = ((offsetX & 31) + (offsetZ & 31) * 32)
+        with open(self.filename, 'rb') as f:
+            f.seek(ind * 4)
+            return int.from_bytes(f.read(3), 'big') != 0
+
         
 
 def load_test():
