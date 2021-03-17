@@ -437,18 +437,16 @@ def write_tag_data(tag : nbt_tag, stream):
         stream.write(b'\x00')
         return
 
-def load(data : bytes):
+def load(data : bytes) ->tuple:
     """
-    `data` must be in valid nbt format.
-
+    `data` must be in valid nbt format, including metadata (id and name).
+    Returns a tuple with the order of (tag, name).
     """
     with io.BytesIO(data) as stream:
         tag_id = read_byte(stream)
-        if tag_id == 10:
-            name = read_string(stream)
-            print(len(name))
-            tag = read_tag_data(stream, 10)
-            return tag
+        name = read_string(stream)
+        tag = read_tag_data(stream, tag_id)
+        return tag, name
 
 def dump(tag : nbt_tag, name : str = None) -> bytes:
     with io.BytesIO() as stream:
