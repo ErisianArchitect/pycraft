@@ -197,6 +197,9 @@ class t_bytes(nbt_tag):
             self.data[index] = value - 256
         else:
             raise Exception('Value is invalid.')
+
+    def __len__(self):
+        return len(self.data)
     
     def write(self, stream):
         stream.write(struct.pack('>i', len(self.data)))
@@ -230,6 +233,9 @@ class t_ints(nbt_tag):
             self.data[index] = value - 4294967296
         else:
             raise Exception('Value is invalid.')
+
+    def __len__(self):
+        return len(self.data)
     
     def write(self, stream):
         stream.write(struct.pack('>i', len(self.data)))
@@ -263,6 +269,9 @@ class t_longs(nbt_tag):
             self.data[index] = value - 18446744073709551616
         else:
             raise Exception('Value is invalid.')
+
+    def __len__(self):
+        return len(self.data)
     
     def write(self, stream):
         stream.write(struct.pack('>i', len(self.data)))
@@ -296,6 +305,9 @@ class t_list(nbt_tag):
     
     def __getitem__(self, index):
         return self.data[index]
+    
+    def __len__(self):
+        return len(self.data)
     
     def write(self, stream):
         write_fmt(stream, '>B', self.type)
@@ -334,6 +346,9 @@ class t_compound(nbt_tag):
     
     def __getattr__(self, id):
         return self.data.get(id, None)
+    
+    def __len__(self):
+        return len(self.data)
     
     def write(self, stream):
         for k, v in self.data.items():
