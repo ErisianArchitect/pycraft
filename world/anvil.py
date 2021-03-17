@@ -2,7 +2,7 @@ import os
 import gzip
 import zlib
 import io
-import nbt
+from . import nbt
 
 class RegionFile:
 

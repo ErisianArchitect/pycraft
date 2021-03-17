@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 import struct
 import io
 from functools import partial
-import util
+from . import util
 
 tag_id_table = {
     1 : 'TAG_Byte',
@@ -416,6 +416,66 @@ def read_tag_data(stream, id):
         for i in range(size):
             items.append(read_long(stream))
         return t_longs(items)
+
+_byte_format = struct.Struct('>B')
+_sbyte_format = struct.Struct('>b')
+_ushort_format = struct.Struct('>H')
+_short_format = struct.Struct('>h')
+_uint_format = struct.Struct('>I')
+_int_format = struct.Struct('>i')
+_ulong_format = struct.Struct('>Q')
+_long_format = struct.Struct('>q')
+_float_format = struct.Struct('>f')
+_double_format = struct.Struct('>d')
+
+_value_tag_types = {t_byte, t_short, t_int, t_long, t_float, t_double}
+_value_tag_format = {
+    t_byte : _sbyte_format,
+    t_short : _short_format,
+    t_int : _int_format,
+    t_long : _long_format,
+    t_float : _float_format,
+    t_double : _double_format
+}
+
+_array_tag_types = {t_bytes, t_ints, t_longs}
+
+def write_tag_data(tag : nbt_tag, stream):
+    if type(tag) in _value_tag_types:
+        stream.write(_value_tag_format[type(tag)].pack(tag.value))
+        return
+    if type(tag) in _array_tag_types:
+        stream.write(_int_format.pack(len(tag.data)))
+        if type(tag) == t_bytes:
+            for v in tag.data:
+                stream.write(_sbyte_format.pack(v))
+            return
+        if type(tag) == t_ints:
+            for v in tag.data:
+                stream.write(_int_format.pack(v))
+            return
+        if type(tag) == t_longs:
+            for v in tag.data:
+                stream.write(_long_format.pack(v))
+            return
+    if type(tag) == t_string:
+        stream.write(_short_format.pack(len(tag.value)))
+        stream.write(tag.value.encode('utf-8'))
+        return
+    if type(tag) == t_list:
+        stream.write(_byte_format.pack(tag.type))
+        stream.write(_int_format.pack(len(tag.data)))
+        for v in tag.data:
+            write_tag_data(v, stream)
+        return
+    if type(tag) == t_compound:
+        for k, v in tag.data.items():
+            stream.write(_byte_format.pack(tag_type_table[type(v)]))
+            stream.write(_ushort_format.pack(len(k)))
+            stream.write(k.encode('utf-8'))
+            write_tag_data(v)
+        stream.write(b'\x00')
+        return
 
 def load(data : bytes):
     with io.BytesIO(data) as stream:
