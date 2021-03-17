@@ -438,6 +438,10 @@ def write_tag_data(tag : nbt_tag, stream):
         return
 
 def load(data : bytes):
+    """
+    `data` must be in valid nbt format.
+
+    """
     with io.BytesIO(data) as stream:
         tag_id = read_byte(stream)
         if tag_id == 10:
@@ -446,10 +450,14 @@ def load(data : bytes):
             tag = read_tag_data(stream, 10)
             return tag
 
-def dump(tag : nbt_tag) -> bytes:
+def dump(tag : nbt_tag, name : str = None) -> bytes:
     with io.BytesIO() as stream:
-        if type(tag) == t_compound:
-            stream.write(b'\x0A\x00\x00')
+        stream.write(_byte_format.pack(tag_type_table[type(tag)]))
+        if name and len(name) > 0:
+            stream.write(_ushort_format(len(name)))
+            stream.write(name.encode('utf-8'))
+        else:
+            stream.write('\x00\x00')
         tag.write(stream)
         return stream.getvalue()
 
