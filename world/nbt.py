@@ -4,33 +4,6 @@ import io
 from functools import partial
 from . import util
 
-tag_id_table = {
-    1 : 'TAG_Byte',
-    2 : 'TAG_Short',
-    3 : 'TAG_Int',
-    4 : 'TAG_Long',
-    5 : 'TAG_Float',
-    6 : 'TAG_Double',
-    7 : 'TAG_Byte_Array',
-    8 : 'TAG_String',
-    9 : 'TAG_List',
-    10 : 'TAG_Compound',
-    11 : 'TAG_Int_Array',
-    12 : 'TAG_Long_Array',
-    'TAG_Byte' : 1,
-    'TAG_Short' : 2,
-    'TAG_Int' : 3,
-    'TAG_Long' : 4,
-    'TAG_Float' : 5,
-    'TAG_Double' : 6,
-    'TAG_Byte_Array' : 7,
-    'TAG_String' : 8,
-    'TAG_List' : 9,
-    'TAG_Compound' : 10,
-    'TAG_Int_Array' : 11,
-    'TAG_Long_Array' : 12
-}
-
 def read_byte(stream):
     return int.from_bytes(stream.read(1),'big',signed=True)
 
@@ -417,29 +390,6 @@ def read_tag_data(stream, id):
             items.append(read_long(stream))
         return t_longs(items)
 
-_byte_format = struct.Struct('>B')
-_sbyte_format = struct.Struct('>b')
-_ushort_format = struct.Struct('>H')
-_short_format = struct.Struct('>h')
-_uint_format = struct.Struct('>I')
-_int_format = struct.Struct('>i')
-_ulong_format = struct.Struct('>Q')
-_long_format = struct.Struct('>q')
-_float_format = struct.Struct('>f')
-_double_format = struct.Struct('>d')
-
-_value_tag_types = {t_byte, t_short, t_int, t_long, t_float, t_double}
-_value_tag_format = {
-    t_byte : _sbyte_format,
-    t_short : _short_format,
-    t_int : _int_format,
-    t_long : _long_format,
-    t_float : _float_format,
-    t_double : _double_format
-}
-
-_array_tag_types = {t_bytes, t_ints, t_longs}
-
 def write_tag_data(tag : nbt_tag, stream):
     if type(tag) in _value_tag_types:
         stream.write(_value_tag_format[type(tag)].pack(tag.value))
@@ -493,6 +443,33 @@ def dump(tag : nbt_tag) -> bytes:
         tag.write(stream)
         return stream.getvalue()
 
+tag_id_table = {
+    1 : 'TAG_Byte',
+    2 : 'TAG_Short',
+    3 : 'TAG_Int',
+    4 : 'TAG_Long',
+    5 : 'TAG_Float',
+    6 : 'TAG_Double',
+    7 : 'TAG_Byte_Array',
+    8 : 'TAG_String',
+    9 : 'TAG_List',
+    10 : 'TAG_Compound',
+    11 : 'TAG_Int_Array',
+    12 : 'TAG_Long_Array',
+    'TAG_Byte' : 1,
+    'TAG_Short' : 2,
+    'TAG_Int' : 3,
+    'TAG_Long' : 4,
+    'TAG_Float' : 5,
+    'TAG_Double' : 6,
+    'TAG_Byte_Array' : 7,
+    'TAG_String' : 8,
+    'TAG_List' : 9,
+    'TAG_Compound' : 10,
+    'TAG_Int_Array' : 11,
+    'TAG_Long_Array' : 12
+}
+
 tag_type_table = {
     0 : None,
     1 : t_byte,
@@ -521,3 +498,26 @@ tag_type_table = {
     t_ints : 11,
     t_longs : 12
 }
+
+_byte_format = struct.Struct('>B')
+_sbyte_format = struct.Struct('>b')
+_ushort_format = struct.Struct('>H')
+_short_format = struct.Struct('>h')
+_uint_format = struct.Struct('>I')
+_int_format = struct.Struct('>i')
+_ulong_format = struct.Struct('>Q')
+_long_format = struct.Struct('>q')
+_float_format = struct.Struct('>f')
+_double_format = struct.Struct('>d')
+
+_value_tag_types = {t_byte, t_short, t_int, t_long, t_float, t_double}
+_value_tag_format = {
+    t_byte : _sbyte_format,
+    t_short : _short_format,
+    t_int : _int_format,
+    t_long : _long_format,
+    t_float : _float_format,
+    t_double : _double_format
+}
+
+_array_tag_types = {t_bytes, t_ints, t_longs}
