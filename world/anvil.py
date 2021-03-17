@@ -32,7 +32,7 @@ class RegionFile:
             if compression_type == 2:
                 return nbt.load(zlib.decompress(f.read(data_length-1)))
             elif compression_type == 1:
-               return nbt.load(gzip.decompress(f.read(data_length-1)))
+                return nbt.load(gzip.decompress(f.read(data_length-1)))
             elif compression_type == 3:
                 return nbt.load(f.read(data_length-1))
     
@@ -65,8 +65,3 @@ class RegionFile:
         with open(self.filename, 'rb') as f:
             f.seek(ind * 4)
             return int.from_bytes(f.read(3), 'big') != 0
-
-        
-
-def load_test():
-    return RegionFile(r'.\r.0.0.mca')
