@@ -1,6 +1,12 @@
 from . import util
 from . import nbt
 
+"""
+As of March 16th, 2021 at 4:45AM(UTC), this file is severely incomplete.
+There is very little that is usable here, if anything at all.
+Also, there are errors.
+"""
+
 class BlockStatePalette:
     __slots__ = ('items',)
 
