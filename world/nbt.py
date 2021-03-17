@@ -1,3 +1,13 @@
+"""
+This module encapsulates the classes, functions, and other tidbits required to handle Minecraft's NBT data structure.
+https://minecraft.gamepedia.com/NBT_format
+
+The main functions that will come in handy are load and dump.
+
+load(data) requires that data be of type bytes. This function returns an nbt tag that represents this data.
+
+"""
+
 from abc import ABC, abstractmethod
 import struct
 import io
