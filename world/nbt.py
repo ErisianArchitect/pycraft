@@ -70,6 +70,15 @@ class t_byte(nbt_tag):
     
     def copy(self) -> nbt_tag:
         return t_byte(self.value)
+    
+    def __eq__(self, other):
+        if type(other) in _value_tag_types:
+            return self.value == other.value
+        else:
+            try:
+                return int(other) == self.value
+            except:
+                return False
 
 class t_short(nbt_tag):
     __slots__ = ('value',)
@@ -87,6 +96,15 @@ class t_short(nbt_tag):
     
     def copy(self) -> nbt_tag:
         return t_short(self.value)
+    
+    def __eq__(self, other):
+        if type(other) in _value_tag_types:
+            return self.value == other.value
+        else:
+            try:
+                return int(other) == self.value
+            except:
+                return False
 
 
 class t_int(nbt_tag):
@@ -105,6 +123,15 @@ class t_int(nbt_tag):
     
     def copy(self) -> nbt_tag:
         return t_int(self.value)
+    
+    def __eq__(self, other):
+        if type(other) in _value_tag_types:
+            return self.value == other.value
+        else:
+            try:
+                return int(other) == self.value
+            except:
+                return False
 
 class t_long(nbt_tag):
     __slots__ = ('value',)
@@ -122,6 +149,15 @@ class t_long(nbt_tag):
     
     def copy(self) -> nbt_tag:
         return t_long(self.value)
+    
+    def __eq__(self, other):
+        if type(other) in _value_tag_types:
+            return self.value == other.value
+        else:
+            try:
+                return int(other) == self.value
+            except:
+                return False
 
 class t_float(nbt_tag):
     __slots__ = ('value',)
@@ -139,6 +175,15 @@ class t_float(nbt_tag):
     
     def copy(self) -> nbt_tag:
         return t_float(self.value)
+    
+    def __eq__(self, other):
+        if type(other) in _value_tag_types:
+            return self.value == other.value
+        else:
+            try:
+                return float(other) == self.value
+            except:
+                return False
 
 class t_double(nbt_tag):
     __slots__ = ('value',)
@@ -156,6 +201,19 @@ class t_double(nbt_tag):
     
     def copy(self) -> nbt_tag:
         return t_double(self.value)
+    
+    def __eq__(self, other):
+        if type(other) in _value_tag_types:
+            return self.value == other.value
+    
+    def __eq__(self, other):
+        if type(other) in _value_tag_types:
+            return self.value == other.value
+        else:
+            try:
+                return float(other) == self.value
+            except:
+                return False
 
 class t_string(nbt_tag):
     __slots__ = ('value',)
@@ -174,6 +232,27 @@ class t_string(nbt_tag):
     
     def copy(self) -> nbt_tag:
         return t_string(self.value)
+    
+    def __getattr__(self, attr):
+        try:
+            return getattr(self.value, attr)
+        except Exception as e:
+            raise e
+
+    def __eq__(self, other):
+        if type(other) == str:
+            return self.value == other
+        if type(other) == t_string:
+            return self.value == other.value
+    
+    def __hash__(self):
+        return hash(self.value)
+
+    def __str__(self):
+        return self.value
+    
+    def __repr__(self):
+        return repr(self.value)
 
 class t_bytes(nbt_tag):
     __slots__ = ('data',)
@@ -206,6 +285,12 @@ class t_bytes(nbt_tag):
     
     def copy(self) -> nbt_tag:
         return t_bytes(self.data)
+    
+    def __eq__(self, other):
+        if type(other) == t_bytes:
+            return numpy.array_equal(self.data, other.data)
+        else:
+            return numpy.array_equal(self.data, other)
 
 class t_ints(nbt_tag):
     __slots__ = ('data',)
@@ -224,6 +309,12 @@ class t_ints(nbt_tag):
 
     def __len__(self):
         return len(self.data)
+    
+    def __eq__(self, other):
+        if type(other) == t_ints:
+            return numpy.array_equal(self.data, other.data)
+        else:
+            return numpy.array_equal(self.data, other)
     
     def write(self, stream):
         stream.write(struct.pack('>i', len(self.data)))
@@ -254,6 +345,12 @@ class t_longs(nbt_tag):
 
     def __len__(self):
         return len(self.data)
+    
+    def __eq__(self, other):
+        if type(other) == t_longs:
+            return numpy.array_equal(self.data, other.data)
+        else:
+            return numpy.array_equal(self.data, other)
     
     def write(self, stream):
         stream.write(struct.pack('>i', len(self.data)))
@@ -290,6 +387,12 @@ class t_list(nbt_tag):
     def __len__(self):
         return len(self.data)
     
+    def __getattr__(self, attr):
+        try:
+            return getattr(self.data, attr)
+        except Exception as e:
+            raise e
+    
     def write(self, stream):
         write_fmt(stream, '>B', self.type)
         write_fmt(stream, '>i', len(self.data))
@@ -317,7 +420,8 @@ class t_compound(nbt_tag):
         return self.data.get(id, None)
     
     def __setitem__(self, id, value):
-        self.data[id] = value
+        if issubclass(type(value), nbt_tag):
+            self.data[id] = value
     
     def __delitem__(self, id):
         del self.data[id]
@@ -330,6 +434,9 @@ class t_compound(nbt_tag):
     
     def __len__(self):
         return len(self.data)
+    
+    def items(self):
+        return self.data.items()
     
     def write(self, stream):
         for k, v in self.data.items():
