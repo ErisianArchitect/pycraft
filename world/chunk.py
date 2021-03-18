@@ -162,24 +162,35 @@ class Chunk:
         for section in sections.data:
             tmp = ChunkSection.from_nbt(section)
             self.Sections[tmp.Y] = tmp
+        
+        _level_tag_slots = ('Biomes', 'CarvingMasks', 'Entities', 'Heightmaps', 'InhabitedTime', 'LastUpdate', 'Lights', 'LiquidTicks', 'LiquidsToBeTicked', 'PostProcessing', 'Status', 'Structures', 'TileEntities', 'TileTicks', 'ToBeTicked', 'xPos', 'zPos')
 
-        self.Biomes = level_tag['Biomes']
-        self.CarvingMasks = level_tag['CarvingMasks']
-        self.Entities = level_tag['Entities']
-        self.Heightmaps = level_tag['Heightmaps']
-        self.LastUpdate = level_tag['LastUpdate']
-        self.Lights = level_tag['Lights']
-        self.LiquidsToBeTicked = level_tag['LiquidsToBeTicked']
-        self.LiquidTicks = level_tag['LiquidTicks']
-        self.InhabitedTime = level_tag['InhabitedTime']
-        self.PostProcessing = level_tag['PostProcessing']
-        self.Status = level_tag['Status']
-        self.TileEntities = level_tag['TileEntities']
-        self.TileTicks = level_tag['TileTicks']
-        self.ToBeTicked = level_tag['ToBeTicked']
-        self.Structures = level_tag['Structures']
-        self.xPos = level_tag['xPos'].value
-        self.zPos = level_tag['zPos'].value
+        for slot in _level_tag_slots:
+            if slot in level_tag:
+                setattr(self, slot, level_tag[slot])
+            else:
+                setattr(self, slot, None)
+
+        # self.Biomes = level_tag['Biomes']
+        # self.CarvingMasks = level_tag['CarvingMasks'] # possibly unused
+        # self.Entities = level_tag['Entities']
+        # self.Heightmaps = level_tag['Heightmaps']
+        # self.LastUpdate = level_tag['LastUpdate']
+        # self.Lights = level_tag['Lights'] # possibly unused
+        # self.LiquidsToBeTicked = level_tag['LiquidsToBeTicked'] # possibly unused
+        # self.LiquidTicks = level_tag['LiquidTicks']
+        # self.InhabitedTime = level_tag['InhabitedTime']
+        # self.PostProcessing = level_tag['PostProcessing']
+        # self.Status = level_tag['Status']
+        # self.TileEntities = level_tag['TileEntities']
+        # self.TileTicks = level_tag['TileTicks']
+        # self.ToBeTicked = level_tag['ToBeTicked'] # possibly unused
+        # self.Structures = level_tag['Structures']
+        # self.xPos = level_tag['xPos'].value
+        # self.zPos = level_tag['zPos'].value
+
+    def to_nbt(self):
+
     
     def __getitem__(self, coord):
         return self.get(*coord)
