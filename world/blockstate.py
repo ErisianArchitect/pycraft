@@ -1,7 +1,6 @@
 """
 This module is for the block state registry. All block states are registered here.
 """
-from enum import Enum
 
 class BlockState:
     __slots__ = ('unique_key', 'id', 'properties')
@@ -51,3 +50,6 @@ def register(id : str, props = {}) -> BlockState:
 air = register('minecraft:air')
 bedrock = register('minecraft:bedrock')
 stone = register('minecraft:stone')
+dirt = register('minecraft:dirt')
+grass = register('minecraft:grass_block')
+barrier = register('minecraft:barrier')
