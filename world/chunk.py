@@ -80,7 +80,12 @@ class ChunkSection:
     __slots__ = ('BlockLight','Blocks','SkyLight','y')
     def __init__(self, y, blocks = None, blocklight = numpy.zeros(shape=(4096,), dtype='>i1'), skylight = numpy.zeros(shape=(4096,), dtype='>i1')):
         self.Y = y
-        self.Blocks = blocks
+        if blocks:
+            self.Blocks = blocks
+        else:
+            self.Blocks = numpy.ndarray(shape=(4096,),dtype=numpy.object_)
+            for i in range(4096):
+                self.Blocks[i] = blockstate.air
         self.BlockLight = blocklight
         self.SkyLight = skylight
     
@@ -132,7 +137,7 @@ class Chunk:
             return self.Sections[sect_y].get_block(x,chunk_y, z)
     
     def set_block(self, x, y, z, id, props={}):
-        sect_y y // 16
+        sect_y = y // 16
         chunk_y = y % 16
         if sect_y in self.Sections:
             self.Sections[sect_y].set_block(x,y,z,id, props)
