@@ -207,7 +207,8 @@ class Chunk:
 
     
     def __getitem__(self, coord):
-        return self.get(*coord)
+        if type(coord) == tuple and len(coord) == 3:
+            return self.get(coord[0], coord[1], coord[2])
     
     def __setitem__(self, coord, value):
         self.set(coord[0], coord[1], coord[2], *value)

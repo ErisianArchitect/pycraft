@@ -3,6 +3,7 @@ import gzip
 import zlib
 import io
 from . import nbt
+from . import chunk
 
 class RegionFile:
 
@@ -10,8 +11,12 @@ class RegionFile:
 
     def __init__(self, filename : str):
         self.filename = filename
+
+    def read_chunk(self, offsetX : int, offsetZ : int) -> chunk.Chunk:
+        tag, _ = self.read_chunk_tag(offsetX, offsetZ)
+        return chunk.Chunk(tag)
     
-    def read_chunk(self, offsetX : int, offsetZ : int) -> nbt.nbt_tag:
+    def read_chunk_tag(self, offsetX : int, offsetZ : int) -> nbt.nbt_tag:
         """
         Reads the chunk (decompressed) from the region file and returns the NBT.
         """
