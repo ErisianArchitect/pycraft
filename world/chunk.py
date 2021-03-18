@@ -149,11 +149,15 @@ class ChunkSection:
 
 class Chunk:
     __slots__ = ('Biomes', 'CarvingMasks', 'DataVersion', 'Entities', 'Heightmaps', 'InhabitedTime', 'LastUpdate', 'Lights', 'LiquidTicks', 'LiquidsToBeTicked', 'PostProcessing', 'Sections', 'Status', 'Structures', 'TileEntities', 'TileTicks', 'ToBeTicked', 'xPos', 'zPos')
+
+    _level_tag_slots = ('Biomes', 'CarvingMasks', 'Entities', 'Heightmaps', 'InhabitedTime', 'LastUpdate', 'Lights', 'LiquidTicks', 'LiquidsToBeTicked', 'PostProcessing', 'Status', 'Structures', 'TileEntities', 'TileTicks', 'ToBeTicked')
+
     def __init__(self, chunk_tag):
         self.DataVersion = chunk_tag['DataVersion'].value
         level_tag = chunk_tag['Level']
-        #   Over time, as I understand more about the file format and how it translates
-        #   to Minecraft, I can move these various tags into their own classes.
+
+        self.xPos = level_tag['xPos'].value
+        self.zPos = level_tag['zPos'].value
 
         sections = level_tag['Sections']
 
@@ -162,34 +166,38 @@ class Chunk:
         for section in sections.data:
             tmp = ChunkSection.from_nbt(section)
             self.Sections[tmp.Y] = tmp
-        
-        _level_tag_slots = ('Biomes', 'CarvingMasks', 'Entities', 'Heightmaps', 'InhabitedTime', 'LastUpdate', 'Lights', 'LiquidTicks', 'LiquidsToBeTicked', 'PostProcessing', 'Status', 'Structures', 'TileEntities', 'TileTicks', 'ToBeTicked', 'xPos', 'zPos')
 
-        for slot in _level_tag_slots:
+        for slot in Chunk._level_tag_slots:
             if slot in level_tag:
                 setattr(self, slot, level_tag[slot])
             else:
                 setattr(self, slot, None)
 
-        # self.Biomes = level_tag['Biomes']
-        # self.CarvingMasks = level_tag['CarvingMasks'] # possibly unused
-        # self.Entities = level_tag['Entities']
-        # self.Heightmaps = level_tag['Heightmaps']
-        # self.LastUpdate = level_tag['LastUpdate']
-        # self.Lights = level_tag['Lights'] # possibly unused
-        # self.LiquidsToBeTicked = level_tag['LiquidsToBeTicked'] # possibly unused
-        # self.LiquidTicks = level_tag['LiquidTicks']
-        # self.InhabitedTime = level_tag['InhabitedTime']
-        # self.PostProcessing = level_tag['PostProcessing']
-        # self.Status = level_tag['Status']
-        # self.TileEntities = level_tag['TileEntities']
-        # self.TileTicks = level_tag['TileTicks']
-        # self.ToBeTicked = level_tag['ToBeTicked'] # possibly unused
-        # self.Structures = level_tag['Structures']
-        # self.xPos = level_tag['xPos'].value
-        # self.zPos = level_tag['zPos'].value
-
     def to_nbt(self):
+        items = {}
+        items['DataVersion'] = nbt.t_int(self.DataVersion)
+
+        level_data = {}
+
+        level_data['xPos'] = nbt.t_int(self.xPos)
+        level_data['zPos'] = nbt.t_int(self.zPos)
+
+        sections = []
+        sect_keys = list(self.Sections.keys())
+        sect_keys.sort()
+        for key in sect_keys:
+            sections.append(self.Sections[key].to_nbt())
+        
+        level_data['Sections'] = nbt.t_list(nbt.t_compound, sections)
+
+        for key in Chunk._level_tag_slots:
+            tmp = getattr(self, key, None)
+            if tmp != None:
+                level_data[key] = tmp
+        
+        items['Level'] = nbt.t_compound(level_data)
+
+        return nbt.t_compound(items)
 
     
     def __getitem__(self, coord):
