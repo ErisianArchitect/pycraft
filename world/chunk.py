@@ -89,7 +89,7 @@ class ChunkSection:
                 props = {}
                 if 'Properties' in v:
                     props = { k : val.value for k, val in v.Properties.data.items() }
-                states.append(blockstate.register(name, props))
+                states.append(block.register(name, props))
         if states_tag and palette:
             for i in range(4096):
                 ind = extract_index(i, len(palette.data), states_tag.data)
