@@ -50,7 +50,7 @@ def inject_index(full_index, palette_size, block_states, value):
 def calc_blockstates_size(palette_size):
     bitsize = max((palette_size - 1).bit_length(), 4)
     vpl = 64 // bitsize
-    return math.ceil(4096 / vpl)
+    return (4096 // vpl) + (1 if (4096 % vpl) != 0 else 0)
 
 class ChunkSection:
 
@@ -117,8 +117,10 @@ class ChunkSection:
             blocklight[i] = (self.BlockLight[i*2] & 0x0F) | ((self.BlockLight[i*2+1] & 0x0F) << 4)
             skylight[i] = (self.SkyLight[i*2] & 0x0F) | ((self.SkyLight[i*2+1] & 0x0F) << 4)
         
-        palette = set(self.Blocks)
+        palette = list(set(self.Blocks))
+        states = numpy.zeros(shape=(calc_blockstates_size(len(palette))), dtype='>i8')
         
+
     
     def get_block(self, x, y, z):
         return blockstate.find(self.Blocks[y*256 + z*16 + x])
