@@ -87,10 +87,11 @@ class Chunk:
 
         sections = level_tag['Sections']
 
-        self.Sections = list()
+        self.Sections = dict()
 
         for section in sections.data:
-            self.Sections.append(ChunkSection(section))
+            tmp = ChunkSection(section)
+            self.Sections[tmp.Y] = tmp
 
         self.Biomes = level_tag['Biomes']
         self.CarvingMasks = level_tag['CarvingMasks']
@@ -109,3 +110,13 @@ class Chunk:
         self.Structures = level_tag['Structures']
         self.xPos = level_tag['xPos'].value
         self.zPos = level_tag['zPos'].value
+
+    def get_block(self,x,y,z):
+        sect_y = y // 16
+        chunk_y = y % 16
+        if sect_y in self.Sections:
+            return self.Sections[sect_y].get_block(x,chunk_y, z)
+    
+    def set_block(self, x, y, z, id, props={}):
+        block_state = blockstate.find(id, props)
+        
