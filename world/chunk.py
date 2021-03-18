@@ -77,10 +77,10 @@ class ChunkSection:
         
         return ChunkSection(y, blocks, blocklight, skylight)
 
-    __slots__ = ('BlockLight','Blocks','SkyLight','y')
+    __slots__ = ('BlockLight','Blocks','SkyLight','Y')
     def __init__(self, y, blocks = None, blocklight = numpy.zeros(shape=(4096,), dtype='>i1'), skylight = numpy.zeros(shape=(4096,), dtype='>i1')):
         self.Y = y
-        if blocks:
+        if blocks is not None:
             self.Blocks = blocks
         else:
             self.Blocks = numpy.ndarray(shape=(4096,),dtype=numpy.object_)
@@ -109,7 +109,7 @@ class Chunk:
         self.Sections = dict()
 
         for section in sections.data:
-            tmp = ChunkSection(section)
+            tmp = ChunkSection.from_nbt(section)
             self.Sections[tmp.Y] = tmp
 
         self.Biomes = level_tag['Biomes']
