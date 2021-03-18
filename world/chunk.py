@@ -132,12 +132,18 @@ class Chunk:
 
     def get_block(self,x,y,z):
         sect_y = y // 16
-        chunk_y = y % 16
-        if sect_y in self.Sections:
-            return self.Sections[sect_y].get_block(x,chunk_y, z)
+        if -1 <= sect_y < 16:
+            chunk_y = y % 16
+            if sect_y in self.Sections:
+                return self.Sections[sect_y].get_block(x,chunk_y, z)
+            else:
+                return blockstate.blocks.air
     
     def set_block(self, x, y, z, id, props={}):
         sect_y = y // 16
-        chunk_y = y % 16
-        if sect_y in self.Sections:
-            self.Sections[sect_y].set_block(x,y,z,id, props)
+        if -1 <= sect_y < 16:
+            chunk_y = y % 16
+            if sect_y in self.Sections:
+                self.Sections[sect_y].set_block(x,y,z,id, props)
+            else:
+                self.Sections[sect_y] = ChunkSection(sect_y)
