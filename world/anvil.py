@@ -28,13 +28,23 @@ class Sector(object):
         return self.offset * 4096
     
     def __lt__(self, other):
-        return self.offset < other.offset
+        return (self.offset + self.count) <= other.offset
     
     def __gt__(self, other):
-        return self.offset > other.offset
+        return self.offset >= (other.offset + other.count)
     
     def __eq__(self, other):
-        return self.offset == other.offset
+        return self.offset == other.offset and self.count == other.count
+    
+    def intersects(self, other):
+        if self.offset <= other.offset and self.end > other.offset:
+            return True
+        if other.offset <= self.offset and other.end > self.offset:
+            return True
+        return False
+    
+    def __repr__(self):
+        return f'Sector(offset={self.offset}, count={self.count})'
 
 class RegionFile:
 
@@ -58,22 +68,29 @@ class RegionFile:
                 for i in range(1024):
                     offset = int.from_bytes(f.read(3), byteorder='big', signed=False)
                     sector_count = int.from_bytes(f.read(1), byteorder='big', signed=False)
-                    sector = Sector(offset, sector_count)
-                    self.items[i] = sector
-                    bisect.insort(self.sectors, sector)
-                self.sectors.sort(key = lambda v: v.offset)
+                    if offset >= 2 and sector_count > 0:
+                        sector = Sector(offset, sector_count)
+                        self.items[i] = sector
+                        bisect.insort(self.sectors, sector)
     
-    def get_free_sector(self, size_in_bytes):
+    def get_free(self, size_in_bytes,insert=True):
         sector_count = math.ceil(size_in_bytes / 4096)
         for i in range(0, len(self.sectors) - 1):
             dist_between = self.sectors[i+1].offset - self.sectors[i].end
             if dist_between >= sector_count:
                 sector = Sector(self.sectors[i].end, sector_count)
-                bisect.insort(self.sectors, sector)
+                if insert:
+                    bisect.insort(self.sectors, sector)
                 return sector
+        #   We reached the end of the file, so we'll need to append some sectors.
+        end_sector = self.sectors[-1]
+        sector = Sector(end_sector.end, sector_count)
+        if insert:
+            bisect.insort(self.sectors, sector)
+        return sector
 
     def read_chunk(self, offsetX : int, offsetZ : int) -> chunk.Chunk:
-        tag, _ = self.read_chunk_tag(offsetX, offsetZ)
+        tag, _ = self.__read_chunk_tag(offsetX, offsetZ)
         return chunk.Chunk(tag)
     
     def read_chunk_tag(self, offsetX : int, offsetZ : int) -> nbt.nbt_tag:
