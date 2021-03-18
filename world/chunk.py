@@ -1,4 +1,5 @@
 import math
+import numpy
 from . import util
 from . import nbt
 from . import blockstate
@@ -33,9 +34,13 @@ def extract_index(full_index, palette_size, block_states):
 
 class ChunkSection:
 
-    __slots__ = ('Name', 'BlockLight','Blocks','SkyLight','Y')
+    @staticmethod
+    def create():
+        section_tag = nbt.t_compound()
+        
+
+    __slots__ = ('BlockLight','Blocks','SkyLight','Y')
     def __init__(self, section_tag):
-        self.Name = section_tag.name
         self.BlockLight = bytearray(4096)
         self.SkyLight = bytearray(4096)
         tmp = section_tag['BlockLight']
@@ -51,7 +56,7 @@ class ChunkSection:
         #   I can make BlockStates an array with a size of 4096 for ease of use.
         #   I can also translate the palette into some other data structure.
         self.Y = section_tag['Y'].value
-        self.Blocks = list()
+        self.Blocks = numpy.ndarray(shape=(4096,),dtype=numpy.object_)
         states_tag = section_tag['BlockStates']
         palette = section_tag['Palette']
 
@@ -66,7 +71,7 @@ class ChunkSection:
         if states_tag and palette:
             for i in range(4096):
                 ind = extract_index(i, len(palette.data), states_tag.data)
-                self.Blocks.append(states[ind].unique_key)
+                self.Blocks[i] = states[ind].unique_key
     
     def get_block(self, x, y, z):
         ind = y*256 + z*16 + x
@@ -118,5 +123,7 @@ class Chunk:
             return self.Sections[sect_y].get_block(x,chunk_y, z)
     
     def set_block(self, x, y, z, id, props={}):
-        block_state = blockstate.find(id, props)
-        
+        sect_y y // 16
+        chunk_y = y % 16
+        if sect_y in self.Sections:
+            self.Sections[sect_y].set_block(x,y,z,id, props)
