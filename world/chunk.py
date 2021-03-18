@@ -185,9 +185,6 @@ class Chunk:
 
         level_data = {}
 
-        level_data['xPos'] = nbt.t_int(self.xPos)
-        level_data['zPos'] = nbt.t_int(self.zPos)
-
         sections = []
         sect_keys = list(self.Sections.keys())
         sect_keys.sort()
@@ -200,6 +197,9 @@ class Chunk:
             tmp = getattr(self, key, None)
             if tmp is not None:
                 level_data[key] = tmp
+        
+        level_data['xPos'] = nbt.t_int(self.xPos)
+        level_data['zPos'] = nbt.t_int(self.zPos)
         
         items['Level'] = nbt.t_compound(level_data)
 
