@@ -42,11 +42,13 @@ class BlockStatePalette:
     __slots__ = ('items',)
 
     def __init__(self, palette_tag : nbt.nbt_tag):
-        self.items = palette_tag.items
+        items = palette_tag.items
+        self.items = 
+
 
 class ChunkSection:
 
-    __slots__ = ('Name', 'BlockLight','BlockStates','Palette','SkyLight','Y')
+    __slots__ = ('Name', 'BlockLight','Blocks','SkyLight','Y')
     def __init__(self, section_tag):
         self.Name = section_tag.name
         self.BlockLight = bytearray(4096)
@@ -61,17 +63,33 @@ class ChunkSection:
             self.SkyLight[i*2+1] = (tmp.data[i] >> 4) & 0x0F
         #   I can make BlockStates an array with a size of 4096 for ease of use.
         #   I can also translate the palette into some other data structure.
-        self.BlockStates = list()
-        states = section_tag['BlockStates']
+        self.Blocks = list()
+        states_tag = section_tag['BlockStates']
         palette = section_tag['Palette']
 
-        self.Palette = BlockStatePalette(palette)
+        states = list()
+
+        for v in palette.data:
+            name = v.Name.value
+            props = {}
+            if 'Properties' in v:
+                props = { k : val.value for k, val in v.Properties.data.items() }
+            states.append(blockstate.register(name, props))
 
         for i in range(4096):
             ind = extract_index(i, len(palette.data), states.data)
-            self.BlockStates.append(ind)
+            self.Blocks.append(states[ind].unique_key)
 
         self.Y = section_tag['Y'].value
+    
+    def get_block(self, x, y, z):
+        ind = y*256 + z*16 + x
+        return blockstate.find(self.Blocks[ind])
+    
+    def set_block(self, x, y, z, id, props = {}):
+        ind = y*256 + z*16 + x
+        state = blockstate.register(id, props)
+        self.Block[ind] = state.unique_key
     
     def to_nbt(self) -> nbt.nbt_tag:
         tag_items = list()
