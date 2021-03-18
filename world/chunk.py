@@ -118,10 +118,24 @@ class ChunkSection:
             skylight[i] = (self.SkyLight[i*2] & 0x0F) | ((self.SkyLight[i*2+1] & 0x0F) << 4)
         
         palette = [blockstate.find(_) for _ in set(self.Blocks)]
+        palette_table = { v.unique_key : i for i, v in enumerate(palette) }
         states = numpy.zeros(shape=(calc_blockstates_size(len(palette))), dtype='>i8')
 
         for i in range(4096):
-            inject_index(i, len(palette), states, palette.index(blockstate.find(self.Blocks[i])))
+            inject_index(i, len(palette), states, palette_table[self.Blocks[i]])
+        
+        states_tag = nbt.t_longs(states)
+
+        palette_items = [blockstate.BlockState.to_nbt(v) for v in palette]
+
+        tag_items = {
+            'BlockLight' : blocklight,
+            'BlockStates' : states_tag,
+            'Palette' : nbt.t_list(nbt.t_compound, palette_items),
+            'SkyLight' : skylight,
+            'Y' : nbt.t_byte(self.Y)
+        }
+        return nbt.t_compound(tag_items)
 
 
     
