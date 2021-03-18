@@ -141,11 +141,11 @@ class Chunk:
     
     def set_block(self, x, y, z, id, props={}):
         sect_y = y // 16
+        chunk_y = y % 16
         if -1 <= sect_y < 16:
-            chunk_y = y % 16
             if sect_y in self.Sections:
-                self.Sections[sect_y].set_block(x,y,z,id, props)
+                self.Sections[sect_y].set_block(x,chunk_y,z,id, props)
             else:
                 sect = ChunkSection(sect_y)
                 self.Sections[sect_y] = sect
-                sect.set_block(x,y,z,id, props)
+                sect.set_block(x,chunk_y,z,id, props)
