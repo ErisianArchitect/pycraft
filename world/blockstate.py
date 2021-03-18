@@ -8,6 +8,9 @@ class BlockState:
         self.unique_key = object()
         self.id = id
         self.properties = properties
+    
+    def __repr__(self):
+        return f'BlockState({repr(self.id)}, {repr(self.properties)})'
 
 _id_state_registry = dict()
 _key_state_registry = dict()
