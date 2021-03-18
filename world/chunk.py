@@ -31,21 +31,6 @@ def extract_index(full_index, palette_size, block_states):
     slot = block_states[state_index]
     return (slot & (mask << value_offset)) >> value_offset
 
-class BlockState:
-    __slots__ = ('Name', 'Properties')
-    def __init__(self, name : str, properties : dict):
-        self.Name = name
-        self.Properties = properties
-    
-
-class BlockStatePalette:
-    __slots__ = ('items',)
-
-    def __init__(self, palette_tag : nbt.nbt_tag):
-        items = palette_tag.items
-        self.items = 
-
-
 class ChunkSection:
 
     __slots__ = ('Name', 'BlockLight','Blocks','SkyLight','Y')
@@ -77,7 +62,7 @@ class ChunkSection:
             states.append(blockstate.register(name, props))
 
         for i in range(4096):
-            ind = extract_index(i, len(palette.data), states.data)
+            ind = extract_index(i, len(palette.data), states_tag.data)
             self.Blocks.append(states[ind].unique_key)
 
         self.Y = section_tag['Y'].value
@@ -90,17 +75,12 @@ class ChunkSection:
         ind = y*256 + z*16 + x
         state = blockstate.register(id, props)
         self.Block[ind] = state.unique_key
-    
-    def to_nbt(self) -> nbt.nbt_tag:
-        tag_items = list()
 
-        # BlockLight
-        block_light = nbt.TAG_Byte_Array('BlockLight', )
-
-
-class LevelData:
-    __slots__ = ('Biomes', 'CarvingMasks', 'Entities', 'Heightmaps', 'LastUpdate','Lights','LiquidsToBeTicked','LiquidTicks','InhabitedTime','PostProcessing','Sections','Status','TileEntities','TileTicks','ToBeTicked','Structures','xPos','zPos')
-    def __init__(self, level_tag):
+class Chunk:
+    __slots__ = ('Biomes', 'CarvingMasks', 'DataVersion', 'Entities', 'Heightmaps', 'InhabitedTime', 'LastUpdate', 'Lights', 'LiquidTicks', 'LiquidsToBeTicked', 'PostProcessing', 'Sections', 'Status', 'Structures', 'TileEntities', 'TileTicks', 'ToBeTicked', 'xPos', 'zPos')
+    def __init__(self, chunk_tag):
+        self.DataVersion = chunk_tag['DataVersion'].value
+        level_tag = LevelData(chunk_tag['Level'])
         #   Over time, as I understand more about the file format and how it translates
         #   to Minecraft, I can move these various tags into their own classes.
 
@@ -128,6 +108,3 @@ class LevelData:
         self.Structures = level_tag['Structures']
         self.xPos = level_tag['xPos'].value
         self.zPos = level_tag['zPos'].value
-
-class Chunk:
-    __slots__ = ('DataVersion','Level')
