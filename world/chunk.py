@@ -2,7 +2,7 @@ import math
 import numpy
 from . import util
 from . import nbt
-from . import blockstate
+from . import block
 
 """
 As of March 16th, 2021 at 4:45AM(UTC), this file is severely incomplete.
@@ -105,7 +105,7 @@ class ChunkSection:
         else:
             self.Blocks = numpy.ndarray(shape=(4096,),dtype=numpy.object_)
             for i in range(4096):
-                self.Blocks[i] = blockstate.air.unique_key
+                self.Blocks[i] = block.air.unique_key
         self.BlockLight = blocklight
         self.SkyLight = skylight
     
@@ -117,7 +117,7 @@ class ChunkSection:
             blocklight[i] = (self.BlockLight[i*2] & 0x0F) | ((self.BlockLight[i*2+1] & 0x0F) << 4)
             skylight[i] = (self.SkyLight[i*2] & 0x0F) | ((self.SkyLight[i*2+1] & 0x0F) << 4)
         
-        palette = [blockstate.find(_) for _ in set(self.Blocks)]
+        palette = [block.find(_) for _ in set(self.Blocks)]
         palette_table = { v.unique_key : i for i, v in enumerate(palette) }
         states = numpy.zeros(shape=(calc_blockstates_size(len(palette))), dtype='>i8')
 
@@ -126,7 +126,7 @@ class ChunkSection:
         
         states_tag = nbt.t_longs(states)
 
-        palette_items = [blockstate.BlockState.to_nbt(v) for v in palette]
+        palette_items = [block.BlockState.to_nbt(v) for v in palette]
 
         tag_items = {
             'BlockLight' : blocklight,
@@ -138,13 +138,13 @@ class ChunkSection:
         return nbt.t_compound(tag_items)
     
     def get(self, x, y, z):
-        return blockstate.find(self.Blocks[y*256 + z*16 + x])
+        return block.find(self.Blocks[y*256 + z*16 + x])
     
     def set(self, x, y, z, id, props = {}):
         if type(id) == str:
-            state = blockstate.register(id, props)
+            state = block.register(id, props)
             self.Blocks[y*256 + z*16 + x] = state.unique_key
-        elif type(id) == BlockState:
+        elif type(id) == block.BlockState:
             self.Blocks[y*256+z*16+x] = id.unique_key
 
 class Chunk:
@@ -207,7 +207,10 @@ class Chunk:
         self.set(coord[0], coord[1], coord[2], *value)
     
     def __delitem__(self, coord):
-        self.set(coord[0], coord[1], coord[2], blockstate.air)
+        self.set(coord[0], coord[1], coord[2], block.air)
+    
+    def remove(self, x, y, z):
+        self.set(x,y,z, 'minecraft:air')
 
     def get(self,x,y,z):
         sect_y = y // 16
@@ -216,7 +219,7 @@ class Chunk:
             if sect_y in self.Sections:
                 return self.Sections[sect_y].get(x,chunk_y, z)
             else:
-                return blockstate.air
+                return block.air
     
     def set(self, x, y, z, id, props={}):
         sect_y = y // 16
