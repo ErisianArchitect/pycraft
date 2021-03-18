@@ -22,7 +22,7 @@ def find(id, props = {}):
     """
     Finds the state in the registry.
     """
-    if not id.startswith(_mc_namespace) and ':' not in id:
+    if type(id) == str and not id.startswith(_mc_namespace) and ':' not in id:
         id = 'minecraft:' + id
     if id in _id_state_registry:
         for p in _id_state_registry[id]:
