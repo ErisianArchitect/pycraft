@@ -58,39 +58,43 @@ class ChunkSection:
     def from_nbt(section_tag : nbt.nbt_tag):
         # TODO: Finish the create function. First find out what initial values to use.
         #self.BlockLight = numpy.zeros(shape=(4096,), dtype='>i1')
-        blocklight = numpy.zeros(shape=(4096,), dtype='>i1')
+        blocklight = None
         #self.SkyLight = numpy.zeros(shape=(4096,), dtype='>i1')
-        skylight = numpy.zeros(shape=(4096,), dtype='>i1')
+        skylight = None
         y = None
         if 'Y' in section_tag:
             y = section_tag['Y'].value
 
         tmp = section_tag['BlockLight']
-        if tmp:
+        if tmp is not None:
+            blocklight = numpy.zeros(shape=(4096,), dtype='>i1')
             for i in range(2048):
                 blocklight[i*2] = tmp.data[i] & 0x0F
                 blocklight[i*2+1] = (tmp.data[i] >> 4) & 0x0F
         tmp = section_tag['SkyLight']
-        if tmp:
+        if tmp is not None:
+            skylight = numpy.zeros(shape=(4096,), dtype='>i1')
             for i in range(2048):
                 skylight[i*2] = tmp.data[i] & 0x0F
                 skylight[i*2+1] = (tmp.data[i] >> 4) & 0x0F
         #   I can make BlockStates an array with a size of 4096 for ease of use.
         #   I can also translate the palette into some other data structure.
         
-        blocks = numpy.ndarray(shape=(4096,),dtype=numpy.object_)
+        blocks = None
         states_tag = section_tag['BlockStates']
         palette = section_tag['Palette']
 
-        states = list()
-        if palette:
+        
+        if palette is not None and states_tag is not None:
+            states = list()
+            blocks = numpy.ndarray(shape=(4096,),dtype=numpy.object_)
             for v in palette.data:
                 name = v.Name.value
                 props = {}
                 if 'Properties' in v:
                     props = { k : val.value for k, val in v.Properties.data.items() }
                 states.append(block.register(name, props))
-        if states_tag and palette:
+            
             for i in range(4096):
                 ind = extract_index(i, len(palette.data), states_tag.data)
                 blocks[i] = states[ind].unique_key
@@ -98,43 +102,45 @@ class ChunkSection:
         return ChunkSection(y, blocks, blocklight, skylight)
 
     __slots__ = ('BlockLight','Blocks','SkyLight','Y')
-    def __init__(self, y, blocks = None, blocklight = numpy.zeros(shape=(4096,), dtype='>i1'), skylight = numpy.zeros(shape=(4096,), dtype='>i1')):
+    def __init__(self, y, blocks = None, blocklight = None, skylight = None):
         self.Y = y
-        if blocks is not None:
-            self.Blocks = blocks
-        else:
-            self.Blocks = numpy.ndarray(shape=(4096,),dtype=numpy.object_)
-            for i in range(4096):
-                self.Blocks[i] = block.air.unique_key
+        self.Blocks = blocks
         self.BlockLight = blocklight
         self.SkyLight = skylight
     
     def to_nbt(self):
-        blocklight = nbt.t_bytes(numpy.zeros(2048, dtype='>u1'))
-        skylight = nbt.t_bytes(numpy.zeros(2048, dtype='>u1'))
 
-        for i in range(2048):
-            blocklight[i] = (self.BlockLight[i*2] & 0x0F) | ((self.BlockLight[i*2+1] & 0x0F) << 4)
-            skylight[i] = (self.SkyLight[i*2] & 0x0F) | ((self.SkyLight[i*2+1] & 0x0F) << 4)
+        tag_items = {}
+
+        if self.BlockLight is not None:
+            blocklight = nbt.t_bytes(numpy.zeros(2048, dtype='>u1'))
+            for i in range(2048):
+                blocklight[i] = (self.BlockLight[i*2] & 0x0F) | ((self.BlockLight[i*2+1] & 0x0F) << 4)
+            tag_items['BlockLight'] = blocklight
+
+        if self.Blocks is not None:
+            palette = [block.find(x) for x in set(self.Blocks)]
+            palette_table = { v.unique_key : i for i, v in enumerate(palette) if v is not None }
+            states = numpy.zeros(shape=(calc_blockstates_size(len(palette))), dtype='>i8')
+
+            for i in range(4096):
+                inject_index(i, len(palette), states, palette_table[self.Blocks[i]])
+            
+            tag_items['BlockStates'] = nbt.t_longs(states)
+
+            palette_items = [block.BlockState.to_nbt(v) for v in palette]
+
+            tag_items['Palette'] = nbt.t_list(nbt.t_compound, palette_items)
+
+        if self.SkyLight is not None:
+            skylight = nbt.t_bytes(numpy.zeros(2048, dtype='>u1'))
+            for i in range(2048):
+                skylight[i] = (self.SkyLight[i*2] & 0x0F) | ((self.SkyLight[i*2+1] & 0x0F) << 4)
+            tag_items['SkyLight'] = skylight
         
-        palette = [block.find(_) for _ in set(self.Blocks)]
-        palette_table = { v.unique_key : i for i, v in enumerate(palette) }
-        states = numpy.zeros(shape=(calc_blockstates_size(len(palette))), dtype='>i8')
-
-        for i in range(4096):
-            inject_index(i, len(palette), states, palette_table[self.Blocks[i]])
+        if self.Y is not None:
+            tag_items['Y'] = nbt.t_byte(self.Y)
         
-        states_tag = nbt.t_longs(states)
-
-        palette_items = [block.BlockState.to_nbt(v) for v in palette]
-
-        tag_items = {
-            'BlockLight' : blocklight,
-            'BlockStates' : states_tag,
-            'Palette' : nbt.t_list(nbt.t_compound, palette_items),
-            'SkyLight' : skylight,
-            'Y' : nbt.t_byte(self.Y)
-        }
         return nbt.t_compound(tag_items)
     
     def get(self, x, y, z):
@@ -192,7 +198,7 @@ class Chunk:
 
         for key in Chunk._level_tag_slots:
             tmp = getattr(self, key, None)
-            if tmp != None:
+            if tmp is not None:
                 level_data[key] = tmp
         
         items['Level'] = nbt.t_compound(level_data)
