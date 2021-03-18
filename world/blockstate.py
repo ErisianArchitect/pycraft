@@ -4,16 +4,19 @@ This module is for the block state registry. All block states are registered her
 import functools
 from . import nbt
 
-#   This metaclass allows us to call BlockState(<id>, <properties>) without creating a new BlockState.
-#   This means that if a BlockState already exists, it will find it and return it.
-class _blockstatemeta(type):
-    @staticmethod
-    def __call__(id, properties={}):
-        state = register(id, properties)
-        return state
-
-class BlockState(metaclass=_blockstatemeta):
+class BlockState:
     __slots__ = ('unique_key', 'id', 'properties')
+
+    def __new__(cls, id, properties={}):
+        instance = find(id, properties)
+        if instance != None:
+            return instance
+        instance = object.__new__(BlockState)
+        instance.id = id
+        instance.properties = properties
+        instance.unique_key = object()
+        register(instance)
+        return instance
 
     def __repr__(self):
         return f'BlockState({repr(self.id)}, {repr(self.properties)})'
@@ -52,21 +55,26 @@ def register(id : str, props = {}) -> BlockState:
     First tries to find the state if it already exists, then creates it if it does not.
     The return value is the BlockState that was registered.
     """
-    if not id.startswith(_mc_namespace) and ':' not in id:
-        id = 'minecraft:' + id
-    state = find(id, props)
-    if state:
+    if type(id) == str:
+        if not id.startswith(_mc_namespace) and ':' not in id:
+            id = 'minecraft:' + id
+        state = find(id, props)
+        if state:
+            return state
+        state = BlockState(id, props)
+        _key_state_registry[state.unique_key] = state
+        if id in _id_state_registry:
+            _id_state_registry[id].append(state)
+        else:
+            _id_state_registry[id] = [state]
         return state
-    state = BlockState()
-    state.id = id
-    state.properties = props
-    state.unique_key = object()
-    _key_state_registry[state.unique_key] = state
-    if id in _id_state_registry:
-        _id_state_registry[id].append(state)
-    else:
-        _id_state_registry[id] = [state]
-    return state
+    elif type(id) == BlockState:
+        state = id
+        _key_state_registry[state.unique_key] = state
+        if state.id in _id_state_registry:
+            _id_state_registry[state.id].append(state)
+        else:
+            _id_state_registry[state.id] = [state]
 
 air = register('minecraft:air')
 bedrock = register('minecraft:bedrock')
