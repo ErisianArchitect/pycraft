@@ -33,7 +33,7 @@ def register(id : str, props = None) -> BlockState:
     state = BlockState(id, props)
     _key_state_registry[state.unique_key] = state
     if id in _id_state_registry:
-        _id_state_registry.append(state)
+        _id_state_registry[id].append(state)
     else:
         _id_state_registry[id] = [state]
     return state
