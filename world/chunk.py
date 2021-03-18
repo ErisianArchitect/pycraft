@@ -139,12 +139,15 @@ class ChunkSection:
 
 
     
-    def get_block(self, x, y, z):
+    def get(self, x, y, z):
         return blockstate.find(self.Blocks[y*256 + z*16 + x])
     
-    def set_block(self, x, y, z, id, props = {}):
-        state = blockstate.register(id, props)
-        self.Blocks[y*256 + z*16 + x] = state.unique_key
+    def set(self, x, y, z, id, props = {}):
+        if type(id) == str:
+            state = blockstate.register(id, props)
+            self.Blocks[y*256 + z*16 + x] = state.unique_key
+        elif type(id) == BlockState:
+            self.Blocks[y*256+z*16+x] = id.unique_key
 
 class Chunk:
     __slots__ = ('Biomes', 'CarvingMasks', 'DataVersion', 'Entities', 'Heightmaps', 'InhabitedTime', 'LastUpdate', 'Lights', 'LiquidTicks', 'LiquidsToBeTicked', 'PostProcessing', 'Sections', 'Status', 'Structures', 'TileEntities', 'TileTicks', 'ToBeTicked', 'xPos', 'zPos')
@@ -180,22 +183,22 @@ class Chunk:
         self.xPos = level_tag['xPos'].value
         self.zPos = level_tag['zPos'].value
 
-    def get_block(self,x,y,z):
+    def get(self,x,y,z):
         sect_y = y // 16
         if -1 <= sect_y < 16:
             chunk_y = y % 16
             if sect_y in self.Sections:
-                return self.Sections[sect_y].get_block(x,chunk_y, z)
+                return self.Sections[sect_y].get(x,chunk_y, z)
             else:
                 return blockstate.air
     
-    def set_block(self, x, y, z, id, props={}):
+    def set(self, x, y, z, id, props={}):
         sect_y = y // 16
         chunk_y = y % 16
         if -1 <= sect_y < 16:
             if sect_y in self.Sections:
-                self.Sections[sect_y].set_block(x,chunk_y,z,id, props)
+                self.Sections[sect_y].set(x,chunk_y,z,id, props)
             else:
                 sect = ChunkSection(sect_y)
                 self.Sections[sect_y] = sect
-                sect.set_block(x,chunk_y,z,id, props)
+                sect.set(x,chunk_y,z,id, props)
