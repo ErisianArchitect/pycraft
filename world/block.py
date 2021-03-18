@@ -8,15 +8,7 @@ class BlockState:
     __slots__ = ('unique_key', 'id', 'properties')
 
     def __new__(cls, id, properties={}):
-        instance = find(id, properties)
-        if instance != None:
-            return instance
-        instance = object.__new__(BlockState)
-        instance.id = id
-        instance.properties = properties
-        instance.unique_key = object()
-        register(instance)
-        return instance
+        return register(id, properties)
 
     def __repr__(self):
         return f'BlockState({repr(self.id)}, {repr(self.properties)})'
@@ -61,20 +53,16 @@ def register(id : str, props = {}) -> BlockState:
         state = find(id, props)
         if state:
             return state
-        state = BlockState(id, props)
-        _key_state_registry[state.unique_key] = state
-        if id in _id_state_registry:
-            _id_state_registry[id].append(state)
-        else:
-            _id_state_registry[id] = [state]
-        return state
-    elif type(id) == BlockState:
-        state = id
+        state = object.__new__(BlockState)
+        state.id = id
+        state.properties = props
+        state.unique_key = object()
         _key_state_registry[state.unique_key] = state
         if state.id in _id_state_registry:
             _id_state_registry[state.id].append(state)
         else:
-            _id_state_registry[state.id] = [state]
+            _id_state_registry[id] = [state]
+        return state
 
 air = register('minecraft:air')
 bedrock = register('minecraft:bedrock')
