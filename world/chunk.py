@@ -39,33 +39,34 @@ class ChunkSection:
         self.BlockLight = bytearray(4096)
         self.SkyLight = bytearray(4096)
         tmp = section_tag['BlockLight']
-        for i in range(2048):
-            self.BlockLight[i*2] = tmp.data[i] & 0x0F
-            self.BlockLight[i*2+1] = (tmp.data[i] >> 4) & 0x0F
+        if tmp:
+            for i in range(2048):
+                self.BlockLight[i*2] = tmp.data[i] & 0x0F
+                self.BlockLight[i*2+1] = (tmp.data[i] >> 4) & 0x0F
         tmp = section_tag['SkyLight']
-        for i in range(2048):
-            self.SkyLight[i*2] = tmp.data[i] & 0x0F
-            self.SkyLight[i*2+1] = (tmp.data[i] >> 4) & 0x0F
+        if tmp:
+            for i in range(2048):
+                self.SkyLight[i*2] = tmp.data[i] & 0x0F
+                self.SkyLight[i*2+1] = (tmp.data[i] >> 4) & 0x0F
         #   I can make BlockStates an array with a size of 4096 for ease of use.
         #   I can also translate the palette into some other data structure.
+        self.Y = section_tag['Y'].value
         self.Blocks = list()
         states_tag = section_tag['BlockStates']
         palette = section_tag['Palette']
 
         states = list()
-
-        for v in palette.data:
-            name = v.Name.value
-            props = {}
-            if 'Properties' in v:
-                props = { k : val.value for k, val in v.Properties.data.items() }
-            states.append(blockstate.register(name, props))
-
-        for i in range(4096):
-            ind = extract_index(i, len(palette.data), states_tag.data)
-            self.Blocks.append(states[ind].unique_key)
-
-        self.Y = section_tag['Y'].value
+        if palette:
+            for v in palette.data:
+                name = v.Name.value
+                props = {}
+                if 'Properties' in v:
+                    props = { k : val.value for k, val in v.Properties.data.items() }
+                states.append(blockstate.register(name, props))
+        if states_tag and palette:
+            for i in range(4096):
+                ind = extract_index(i, len(palette.data), states_tag.data)
+                self.Blocks.append(states[ind].unique_key)
     
     def get_block(self, x, y, z):
         ind = y*256 + z*16 + x
@@ -80,7 +81,7 @@ class Chunk:
     __slots__ = ('Biomes', 'CarvingMasks', 'DataVersion', 'Entities', 'Heightmaps', 'InhabitedTime', 'LastUpdate', 'Lights', 'LiquidTicks', 'LiquidsToBeTicked', 'PostProcessing', 'Sections', 'Status', 'Structures', 'TileEntities', 'TileTicks', 'ToBeTicked', 'xPos', 'zPos')
     def __init__(self, chunk_tag):
         self.DataVersion = chunk_tag['DataVersion'].value
-        level_tag = LevelData(chunk_tag['Level'])
+        level_tag = chunk_tag['Level']
         #   Over time, as I understand more about the file format and how it translates
         #   to Minecraft, I can move these various tags into their own classes.
 
@@ -88,7 +89,7 @@ class Chunk:
 
         self.Sections = list()
 
-        for section in sections:
+        for section in sections.data:
             self.Sections.append(ChunkSection(section))
 
         self.Biomes = level_tag['Biomes']
@@ -102,7 +103,7 @@ class Chunk:
         self.InhabitedTime = level_tag['InhabitedTime']
         self.PostProcessing = level_tag['PostProcessing']
         self.Status = level_tag['Status']
-        self.TileEntites = level_tag['TileEntities']
+        self.TileEntities = level_tag['TileEntities']
         self.TileTicks = level_tag['TileTicks']
         self.ToBeTicked = level_tag['ToBeTicked']
         self.Structures = level_tag['Structures']
