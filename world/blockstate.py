@@ -40,3 +40,6 @@ def register(id : str, props = None) -> BlockState:
     else:
         _id_state_registry[id] = [state]
     return state
+
+air = register('minecraft:air')
+bedrock = register('minecraft:bedrock')
