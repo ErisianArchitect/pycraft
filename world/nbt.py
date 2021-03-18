@@ -466,7 +466,7 @@ class t_compound(nbt_tag):
                 return
             if type(value) == bool:
                 self.data[id] = t_byte(1 if value else 0)
-            if type(value) int {numpy.int8, numpy.uint8}:
+            if type(value) in {numpy.int8, numpy.uint8}:
                 self.data[id] == t_byte(value)
     
     def __delitem__(self, id):
@@ -487,7 +487,7 @@ class t_compound(nbt_tag):
                 if other.data[k] != v:
                     return False
             return True
-        if type(other) == dict:
+        if type(other) == dict and len(self.data) == len(other):
             for k, v in self.data.items():
                 if other[k] != v:
                     return False
