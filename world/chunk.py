@@ -45,7 +45,7 @@ def inject_index(full_index, palette_size, block_states, value):
 
     tmp = (tmp & ~(mask << value_offset)) | (value << value_offset)
 
-    blockstates[state_index] = tmp
+    block_states[state_index] = tmp
 
 def calc_blockstates_size(palette_size):
     bitsize = max((palette_size - 1).bit_length(), 4)
@@ -105,7 +105,7 @@ class ChunkSection:
         else:
             self.Blocks = numpy.ndarray(shape=(4096,),dtype=numpy.object_)
             for i in range(4096):
-                self.Blocks[i] = blockstate.air
+                self.Blocks[i] = blockstate.air.unique_key
         self.BlockLight = blocklight
         self.SkyLight = skylight
     
@@ -117,9 +117,12 @@ class ChunkSection:
             blocklight[i] = (self.BlockLight[i*2] & 0x0F) | ((self.BlockLight[i*2+1] & 0x0F) << 4)
             skylight[i] = (self.SkyLight[i*2] & 0x0F) | ((self.SkyLight[i*2+1] & 0x0F) << 4)
         
-        palette = list(set(self.Blocks))
+        palette = [blockstate.find(_) for _ in set(self.Blocks)]
         states = numpy.zeros(shape=(calc_blockstates_size(len(palette))), dtype='>i8')
-        
+
+        for i in range(4096):
+            inject_index(i, len(palette), states, palette.index(blockstate.find(self.Blocks[i])))
+
 
     
     def get_block(self, x, y, z):
