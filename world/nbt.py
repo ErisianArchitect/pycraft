@@ -178,13 +178,13 @@ class t_string(nbt_tag):
 class t_bytes(nbt_tag):
     __slots__ = ('data',)
 
-    def __init__(self, data=None):
+    def __init__(self, data=numpy.array([],dtype='>i1')):
         if type(data) == list:
             self.data = numpy.array(data, dtype='>i1')
         elif type(data) in {bytes, bytearray}:
             self.data = numpy.array(list(data),dtype='>i1')
         else:
-            self.data = numpy.array([],dtype='>i1')
+            self.data = data
     
     def __getitem__(self, index):
         return self.data[index]
@@ -210,11 +210,11 @@ class t_bytes(nbt_tag):
 class t_ints(nbt_tag):
     __slots__ = ('data',)
 
-    def __init__(self, data=None):
+    def __init__(self, data=numpy.array(None,dtype='>i4')):
         if type(data) == list:
             self.data = numpy.array(data, dtype='>i4')
         else:
-            self.data = numpy.array(None,dtype='>i4')
+            self.data = data
     
     def __getitem__(self, index):
         return self.data[index]
@@ -240,11 +240,11 @@ class t_ints(nbt_tag):
 class t_longs(nbt_tag):
     __slots__ = ('data',)
 
-    def __init__(self, data=None):
+    def __init__(self, data=numpy.array(None, dtype='>i8')):
         if type(data) == list:
             self.data = numpy.array(data, dtype='>i8')
         else:
-            self.data = numpy.array(None, dtype='>i8')
+            self.data = data
     
     def __getitem__(self, index):
         return self.data[index]
