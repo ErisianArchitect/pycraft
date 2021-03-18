@@ -35,28 +35,30 @@ def extract_index(full_index, palette_size, block_states):
 class ChunkSection:
 
     @staticmethod
-    def create():
-        section_tag = nbt.t_compound()
-        
+    def from_nbt(section_tag : nbt.nbt_tag):
+        # TODO: Finish the create function. First find out what initial values to use.
+        #self.BlockLight = numpy.zeros(shape=(4096,), dtype='>i1')
+        blocklight = numpy.zeros(shape=(4096,), dtype='>i1')
+        #self.SkyLight = numpy.zeros(shape=(4096,), dtype='>i1')
+        skylight = numpy.zeros(shape=(4096,), dtype='>i1')
+        y = None
+        if 'Y' in section_tag:
+            y = section_tag['Y'].value
 
-    __slots__ = ('BlockLight','Blocks','SkyLight','Y')
-    def __init__(self, section_tag):
-        self.BlockLight = bytearray(4096)
-        self.SkyLight = bytearray(4096)
         tmp = section_tag['BlockLight']
         if tmp:
             for i in range(2048):
-                self.BlockLight[i*2] = tmp.data[i] & 0x0F
-                self.BlockLight[i*2+1] = (tmp.data[i] >> 4) & 0x0F
+                blocklight[i*2] = tmp.data[i] & 0x0F
+                blocklight[i*2+1] = (tmp.data[i] >> 4) & 0x0F
         tmp = section_tag['SkyLight']
         if tmp:
             for i in range(2048):
-                self.SkyLight[i*2] = tmp.data[i] & 0x0F
-                self.SkyLight[i*2+1] = (tmp.data[i] >> 4) & 0x0F
+                skylight[i*2] = tmp.data[i] & 0x0F
+                skylight[i*2+1] = (tmp.data[i] >> 4) & 0x0F
         #   I can make BlockStates an array with a size of 4096 for ease of use.
         #   I can also translate the palette into some other data structure.
-        self.Y = section_tag['Y'].value
-        self.Blocks = numpy.ndarray(shape=(4096,),dtype=numpy.object_)
+        
+        blocks = numpy.ndarray(shape=(4096,),dtype=numpy.object_)
         states_tag = section_tag['BlockStates']
         palette = section_tag['Palette']
 
@@ -71,16 +73,26 @@ class ChunkSection:
         if states_tag and palette:
             for i in range(4096):
                 ind = extract_index(i, len(palette.data), states_tag.data)
-                self.Blocks[i] = states[ind].unique_key
+                blocks[i] = states[ind].unique_key
+        
+        return ChunkSection(y, blocks, blocklight, skylight)
+
+    __slots__ = ('BlockLight','Blocks','SkyLight','y')
+    def __init__(self, y, blocks = numpy.ndarray(shape=(4096,),dtype=numpy.object_), blocklight = numpy.zeros(shape=(4096,), dtype='>i1'), skylight = numpy.zeros(shape=(4096,), dtype='>i1')):
+        """
+
+        """
+        self.Y = y
+        self.Blocks = blocks
+        self.BlockLight = blocklight
+        self.SkyLight = skylight
     
     def get_block(self, x, y, z):
-        ind = y*256 + z*16 + x
-        return blockstate.find(self.Blocks[ind])
+        return blockstate.find(self.Blocks[y*256 + z*16 + x])
     
     def set_block(self, x, y, z, id, props = {}):
-        ind = y*256 + z*16 + x
         state = blockstate.register(id, props)
-        self.Block[ind] = state.unique_key
+        self.Block[y*256 + z*16 + x] = state.unique_key
 
 class Chunk:
     __slots__ = ('Biomes', 'CarvingMasks', 'DataVersion', 'Entities', 'Heightmaps', 'InhabitedTime', 'LastUpdate', 'Lights', 'LiquidTicks', 'LiquidsToBeTicked', 'PostProcessing', 'Sections', 'Status', 'Structures', 'TileEntities', 'TileTicks', 'ToBeTicked', 'xPos', 'zPos')
