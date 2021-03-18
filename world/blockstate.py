@@ -16,7 +16,7 @@ class BlockState:
     
     @staticmethod
     @functools.lru_cache(maxsize=128)
-    def to_nbt(state : BlockState):
+    def to_nbt(state):
         items = {}
         items['Name'] = nbt.t_string(state.id)
         if len(state.properties) > 0:
