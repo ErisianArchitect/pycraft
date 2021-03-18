@@ -59,7 +59,12 @@ class t_byte(nbt_tag):
     __slots__ = ('value',)
 
     def __init__(self, value=0):
-        self.value = value
+        if -128 <= value < 128:
+            self.value = value
+        elif 128 <= value < 256:
+            self.value = value - 256
+        else:
+            raise Exception('Invalid value.')
     
     def write(self, stream):
         stream.write(struct.pack('>b', self.value))
@@ -85,7 +90,12 @@ class t_short(nbt_tag):
     __slots__ = ('value',)
 
     def __init__(self, value=0):
-        self.value = value
+        if -2**15 <= value < 2**15:
+            self.value = value
+        elif 2**15 <= value < 2**16:
+            self.value = value - 2**16
+        else:
+            raise Exception('Invalid value.')
     
     def write(self, stream):
         stream.write(struct.pack('>h', self.value))
@@ -112,7 +122,12 @@ class t_int(nbt_tag):
     __slots__ = ('value',)
 
     def __init__(self, value=0):
-        self.value = value
+        if -2**31 <= value < 2**31:
+            self.value = value
+        elif 2**31 <= value < 2**32:
+            self.value = value - 2**32
+        else:
+            raise Exception('Invalid value.')
     
     def write(self, stream):
         stream.write(struct.pack('>i', self.value))
@@ -138,7 +153,12 @@ class t_long(nbt_tag):
     __slots__ = ('value',)
 
     def __init__(self, value=0):
-        self.value = value
+        if -2**63 <= value < 2**63:
+            self.value = value
+        elif 2**63 <= value < 2**64:
+            self.value = value - 2**64
+        else:
+            raise Exception('Invalid value.')
     
     def write(self, stream):
         stream.write(struct.pack('>q', self.value))
@@ -164,7 +184,7 @@ class t_float(nbt_tag):
     __slots__ = ('value',)
 
     def __init__(self, value=0.0):
-        self.value = value
+        self.value = float(value)
     
     def write(self, stream):
         stream.write(struct.pack('>f', self.value))
@@ -190,7 +210,7 @@ class t_double(nbt_tag):
     __slots__ = ('value',)
 
     def __init__(self, value=0):
-        self.value = value
+        self.value = float(value)
     
     def write(self, stream):
         stream.write(struct.pack('>d', self.value))
@@ -435,17 +455,19 @@ class t_compound(nbt_tag):
         if issubclass(type(value), nbt_tag):
             self.data[id] = value
         else:
-            if type(id) == int:
+            if type(value) == int:
                 self.data[id] = t_int(value)
                 return
-            if type(id) == float:
+            if type(value) == float:
                 self.data[id] = t_float(value)
                 return
-            if type(id) == str:
+            if type(value) == str:
                 self.data[id] = t_string(value)
                 return
-            if type(id) == list:
-
+            if type(value) == bool:
+                self.data[id] = t_byte(1 if value else 0)
+            if type(value) int {numpy.int8, numpy.uint8}:
+                self.data[id] == t_byte(value)
     
     def __delitem__(self, id):
         del self.data[id]
