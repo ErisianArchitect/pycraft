@@ -94,7 +94,7 @@ class ChunkSection:
     
     def set_block(self, x, y, z, id, props = {}):
         state = blockstate.register(id, props)
-        self.Block[y*256 + z*16 + x] = state.unique_key
+        self.Blocks[y*256 + z*16 + x] = state.unique_key
 
 class Chunk:
     __slots__ = ('Biomes', 'CarvingMasks', 'DataVersion', 'Entities', 'Heightmaps', 'InhabitedTime', 'LastUpdate', 'Lights', 'LiquidTicks', 'LiquidsToBeTicked', 'PostProcessing', 'Sections', 'Status', 'Structures', 'TileEntities', 'TileTicks', 'ToBeTicked', 'xPos', 'zPos')
