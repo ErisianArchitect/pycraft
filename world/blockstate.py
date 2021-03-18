@@ -12,7 +12,7 @@ class BlockState:
 _id_state_registry = dict()
 _key_state_registry = dict()
 
-def find_state(id, props = {}):
+def find(id, props = {}):
     """
     Finds the state in the registry.
     """
@@ -22,12 +22,12 @@ def find_state(id, props = {}):
                 return p
     return _key_state_registry.get(id, None)
 
-def register_state(id : str, props = None) -> BlockState:
+def register(id : str, props = None) -> BlockState:
     """
     First tries to find the state if it already exists, then creates it if it does not.
     The return value is the BlockState that was registered.
     """
-    state = find_state(id, props)
+    state = find(id, props)
     if state:
         return state
     state = BlockState(id, props)
