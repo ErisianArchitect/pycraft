@@ -1,6 +1,8 @@
 """
 This module is for the block state registry. All block states are registered here.
 """
+import functools
+from . import nbt
 
 class BlockState:
     __slots__ = ('unique_key', 'id', 'properties')
@@ -11,6 +13,18 @@ class BlockState:
     
     def __repr__(self):
         return f'BlockState({repr(self.id)}, {repr(self.properties)})'
+    
+    @staticmethod
+    @functools.lru_cache(maxsize=128)
+    def to_nbt(state : BlockState):
+        items = {}
+        items['Name'] = nbt.t_string(state.id)
+        if len(state.properties) > 0:
+            props = { k : nbt.t_string(v) for k, v in state.properties.items()}
+            props_tag = nbt.t_compound(props)
+            items['Properties'] = props_tag
+        return nbt.t_compound(items)
+
 
 _id_state_registry = dict()
 _key_state_registry = dict()
