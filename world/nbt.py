@@ -210,7 +210,7 @@ class t_bytes(nbt_tag):
 class t_ints(nbt_tag):
     __slots__ = ('data',)
 
-    def __init__(self, data=numpy.array(None,dtype='>i4')):
+    def __init__(self, data=numpy.array([],dtype='>i4')):
         if type(data) == list:
             self.data = numpy.array(data, dtype='>i4')
         else:
@@ -240,7 +240,7 @@ class t_ints(nbt_tag):
 class t_longs(nbt_tag):
     __slots__ = ('data',)
 
-    def __init__(self, data=numpy.array(None, dtype='>i8')):
+    def __init__(self, data=numpy.array([], dtype='>i8')):
         if type(data) == list:
             self.data = numpy.array(data, dtype='>i8')
         else:
