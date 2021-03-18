@@ -146,4 +146,6 @@ class Chunk:
             if sect_y in self.Sections:
                 self.Sections[sect_y].set_block(x,y,z,id, props)
             else:
-                self.Sections[sect_y] = ChunkSection(sect_y)
+                sect = ChunkSection(sect_y)
+                self.Sections[sect_y] = sect
+                sect.set_block(x,y,z,id, props)
