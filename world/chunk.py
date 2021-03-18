@@ -1,11 +1,42 @@
+import math
 from . import util
 from . import nbt
+
 
 """
 As of March 16th, 2021 at 4:45AM(UTC), this file is severely incomplete.
 There is very little that is usable here, if anything at all.
 Also, there are errors.
 """
+
+def nibble4(arr, index):
+    return arr[index//2] & 0x0F if index % 2 == 0 else (arr[index//2]>>4) & 0x0F
+
+def chunk_block_index(*args):
+    if len(args) == 3:
+        return args[1]*256+args[2]*16+args[0]
+    else:
+        return args[0][1]*256+args[0][2]*16+args[0][0]
+
+def chunk_index_bitsize(palette_size):
+    return max(math.ceil(math.log2(palette_size)), 4)
+
+def extract_index(full_index, palette_size, block_states):
+    bitsize = max(math.ceil(math.log2(palette_size)), 4)
+    #vpl = values per long
+    vpl = 64 // bitsize
+    mask = 2**bitsize-1
+    state_index = full_index // vpl
+    value_offset = (full_index % vpl) * bitsize
+    slot = block_states[state_index]
+    return (slot & (mask << value_offset)) >> value_offset
+
+class BlockState:
+    __slots__ = ('Name', 'Properties')
+    def __init__(self, name : str, properties : dict):
+        self.Name = name
+        self.Properties = properties
+    
 
 class BlockStatePalette:
     __slots__ = ('items',)
@@ -22,12 +53,12 @@ class ChunkSection:
         self.SkyLight = bytearray(4096)
         tmp = section_tag['BlockLight']
         for i in range(2048):
-            self.BlockLight[i*2] = tmp.items[i] & 0x0F
-            self.BlockLight[i*2+1] = (tmp.items[i] >> 4) & 0x0F
+            self.BlockLight[i*2] = tmp.data[i] & 0x0F
+            self.BlockLight[i*2+1] = (tmp.data[i] >> 4) & 0x0F
         tmp = section_tag['SkyLight']
         for i in range(2048):
-            self.SkyLight[i*2] = tmp.items[i] & 0x0F
-            self.SkyLight[i*2+1] = (tmp.items[i] >> 4) & 0x0F
+            self.SkyLight[i*2] = tmp.data[i] & 0x0F
+            self.SkyLight[i*2+1] = (tmp.data[i] >> 4) & 0x0F
         #   I can make BlockStates an array with a size of 4096 for ease of use.
         #   I can also translate the palette into some other data structure.
         self.BlockStates = list()
@@ -37,7 +68,7 @@ class ChunkSection:
         self.Palette = BlockStatePalette(palette)
 
         for i in range(4096):
-            ind = util.extract_index(i, len(palette.items), states.items)
+            ind = extract_index(i, len(palette.data), states.data)
             self.BlockStates.append(ind)
 
         self.Y = section_tag['Y'].value
@@ -77,8 +108,8 @@ class LevelData:
         self.TileTicks = level_tag['TileTicks']
         self.ToBeTicked = level_tag['ToBeTicked']
         self.Structures = level_tag['Structures']
-        self.xPos = level_tag['xPos']
-        self.zPos = level_tag['zPos']
+        self.xPos = level_tag['xPos'].value
+        self.zPos = level_tag['zPos'].value
 
 class Chunk:
     __slots__ = ('DataVersion','Level')
