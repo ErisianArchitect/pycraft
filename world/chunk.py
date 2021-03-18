@@ -78,10 +78,7 @@ class ChunkSection:
         return ChunkSection(y, blocks, blocklight, skylight)
 
     __slots__ = ('BlockLight','Blocks','SkyLight','y')
-    def __init__(self, y, blocks = numpy.ndarray(shape=(4096,),dtype=numpy.object_), blocklight = numpy.zeros(shape=(4096,), dtype='>i1'), skylight = numpy.zeros(shape=(4096,), dtype='>i1')):
-        """
-
-        """
+    def __init__(self, y, blocks = None, blocklight = numpy.zeros(shape=(4096,), dtype='>i1'), skylight = numpy.zeros(shape=(4096,), dtype='>i1')):
         self.Y = y
         self.Blocks = blocks
         self.BlockLight = blocklight
