@@ -13,6 +13,7 @@ import struct
 import io
 from functools import partial
 from . import util
+from . import nbtutil
 import numpy
 
 def read_byte(stream):
@@ -78,7 +79,7 @@ class t_byte(nbt_tag):
             try:
                 return int(other) == self.value
             except:
-                return False
+                return self.value == other
 
 class t_short(nbt_tag):
     __slots__ = ('value',)
@@ -104,7 +105,7 @@ class t_short(nbt_tag):
             try:
                 return int(other) == self.value
             except:
-                return False
+                return self.value == other
 
 
 class t_int(nbt_tag):
@@ -131,7 +132,7 @@ class t_int(nbt_tag):
             try:
                 return int(other) == self.value
             except:
-                return False
+                return self.value == other
 
 class t_long(nbt_tag):
     __slots__ = ('value',)
@@ -157,7 +158,7 @@ class t_long(nbt_tag):
             try:
                 return int(other) == self.value
             except:
-                return False
+                return self.value == other
 
 class t_float(nbt_tag):
     __slots__ = ('value',)
@@ -183,7 +184,7 @@ class t_float(nbt_tag):
             try:
                 return float(other) == self.value
             except:
-                return False
+                return self.value == other
 
 class t_double(nbt_tag):
     __slots__ = ('value',)
@@ -213,7 +214,7 @@ class t_double(nbt_tag):
             try:
                 return float(other) == self.value
             except:
-                return False
+                return self.value == other
 
 class t_string(nbt_tag):
     __slots__ = ('value',)
@@ -244,6 +245,10 @@ class t_string(nbt_tag):
             return self.value == other
         if type(other) == t_string:
             return self.value == other.value
+        try:
+            return self.value == str(other)
+        except:
+            return self.value == other
     
     def __hash__(self):
         return hash(self.value)
@@ -392,6 +397,13 @@ class t_list(nbt_tag):
             return getattr(self.data, attr)
         except Exception as e:
             raise e
+
+    def __eq__(self, other):
+        if type(other) == t_list:
+            return self.data == other.data
+        if type(other) == list:
+            return self.data == other
+        return False
     
     def write(self, stream):
         write_fmt(stream, '>B', self.type)
@@ -422,6 +434,18 @@ class t_compound(nbt_tag):
     def __setitem__(self, id, value):
         if issubclass(type(value), nbt_tag):
             self.data[id] = value
+        else:
+            if type(id) == int:
+                self.data[id] = t_int(value)
+                return
+            if type(id) == float:
+                self.data[id] = t_float(value)
+                return
+            if type(id) == str:
+                self.data[id] = t_string(value)
+                return
+            if type(id) == list:
+
     
     def __delitem__(self, id):
         del self.data[id]
@@ -434,6 +458,19 @@ class t_compound(nbt_tag):
     
     def __len__(self):
         return len(self.data)
+    
+    def __eq__(self, other):
+        if type(other) == t_compound and len(self.data) == len(other.data):
+            for k, v in self.data.items():
+                if other.data[k] != v:
+                    return False
+            return True
+        if type(other) == dict:
+            for k, v in self.data.items():
+                if other[k] != v:
+                    return False
+            return True
+        return False
     
     def items(self):
         return self.data.items()
