@@ -4,13 +4,17 @@ This module is for the block state registry. All block states are registered her
 import functools
 from . import nbt
 
-class BlockState:
+#   This metaclass allows us to call BlockState(<id>, <properties>) without creating a new BlockState.
+#   This means that if a BlockState already exists, it will find it and return it.
+class _blockstatemeta(type):
+    @staticmethod
+    def __call__(id, properties={}):
+        state = register(id, properties)
+        return state
+
+class BlockState(metaclass=_blockstatemeta):
     __slots__ = ('unique_key', 'id', 'properties')
-    def __init__(self, id, properties):
-        self.unique_key = object()
-        self.id = id
-        self.properties = properties
-    
+
     def __repr__(self):
         return f'BlockState({repr(self.id)}, {repr(self.properties)})'
     
@@ -53,7 +57,10 @@ def register(id : str, props = {}) -> BlockState:
     state = find(id, props)
     if state:
         return state
-    state = BlockState(id, props)
+    state = BlockState()
+    state.id = id
+    state.properties = props
+    state.unique_key = object()
     _key_state_registry[state.unique_key] = state
     if id in _id_state_registry:
         _id_state_registry[id].append(state)
