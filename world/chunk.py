@@ -23,7 +23,7 @@ def chunk_index_bitsize(palette_size):
     return max(math.ceil(math.log2(palette_size)), 4)
 
 def extract_index(full_index, palette_size, block_states):
-    bitsize = max(math.ceil(math.log2(palette_size)), 4)
+    bitsize = max((palette_size - 1).bit_length(), 4)
     #vpl = values per long
     vpl = 64 // bitsize
     mask = 2**bitsize-1
@@ -31,6 +31,26 @@ def extract_index(full_index, palette_size, block_states):
     value_offset = (full_index % vpl) * bitsize
     slot = block_states[state_index]
     return (slot & (mask << value_offset)) >> value_offset
+
+def inject_index(full_index, palette_size, block_states, value):
+    bitsize = max((palette_size - 1).bit_length(), 4)
+    #vpl = values per long
+    vpl = 64 // bitsize
+    mask = 2**bitsize-1
+    masked_value = value & mask
+    state_index = full_index // vpl
+    value_offset = (full_index % vpl) * bitsize
+
+    tmp = block_states[state_index]
+
+    tmp = (tmp & ~(mask << value_offset)) | (value << value_offset)
+
+    blockstates[state_index] = tmp
+
+def calc_blockstates_size(palette_size):
+    bitsize = max((palette_size - 1).bit_length(), 4)
+    vpl = 64 // bitsize
+    return math.ceil(4096 / vpl)
 
 class ChunkSection:
 
@@ -88,6 +108,17 @@ class ChunkSection:
                 self.Blocks[i] = blockstate.air
         self.BlockLight = blocklight
         self.SkyLight = skylight
+    
+    def to_nbt(self):
+        blocklight = nbt.t_bytes(numpy.zeros(2048, dtype='>u1'))
+        skylight = nbt.t_bytes(numpy.zeros(2048, dtype='>u1'))
+
+        for i in range(2048):
+            blocklight[i] = (self.BlockLight[i*2] & 0x0F) | ((self.BlockLight[i*2+1] & 0x0F) << 4)
+            skylight[i] = (self.SkyLight[i*2] & 0x0F) | ((self.SkyLight[i*2+1] & 0x0F) << 4)
+        
+        palette = set(self.Blocks)
+        
     
     def get_block(self, x, y, z):
         return blockstate.find(self.Blocks[y*256 + z*16 + x])
