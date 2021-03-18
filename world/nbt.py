@@ -13,6 +13,7 @@ import struct
 import io
 from functools import partial
 from . import util
+import numpy
 
 def read_byte(stream):
     return int.from_bytes(stream.read(1),'big',signed=True)
@@ -179,32 +180,24 @@ class t_bytes(nbt_tag):
 
     def __init__(self, data=None):
         if type(data) == list:
-            self.data = list(data)
+            self.data = numpy.array(data, dtype='>i1')
         elif type(data) in {bytes, bytearray}:
-            self.data = list()
-            for v in data:
-                self.data.append(util.byte_to_sbyte(v))
+            self.data = numpy.array(list(data),dtype='>i1')
         else:
-            self.data = list()
+            self.data = numpy.array([],dtype='>i1')
     
     def __getitem__(self, index):
         return self.data[index]
     
     def __setitem__(self, index, value):
-        if -128 <= value < 128:
-            self.data[index] = value
-        elif 128 <= value < 256:
-            self.data[index] = value - 256
-        else:
-            raise Exception('Value is invalid.')
+        self.data[index] = value
 
     def __len__(self):
         return len(self.data)
     
     def write(self, stream):
         stream.write(struct.pack('>i', len(self.data)))
-        for v in self.data:
-            stream.write(struct.pack('>b', v))
+        stream.write(self.data.tobytes())
     
     def to_bytes(self) -> bytes:
         with io.BytesIO() as buffer:
@@ -219,28 +212,22 @@ class t_ints(nbt_tag):
 
     def __init__(self, data=None):
         if type(data) == list:
-            self.data = list(data)
+            self.data = numpy.array(data, dtype='>i4')
         else:
-            self.data = list()
+            self.data = numpy.array(None,dtype='>i4')
     
     def __getitem__(self, index):
         return self.data[index]
     
     def __setitem__(self, index, value):
-        if -2147483648 <= value < 2147483648:
-            self.data[index] = value
-        elif 2147483648 <= value < 4294967296:
-            self.data[index] = value - 4294967296
-        else:
-            raise Exception('Value is invalid.')
+        self.data[index] = value
 
     def __len__(self):
         return len(self.data)
     
     def write(self, stream):
         stream.write(struct.pack('>i', len(self.data)))
-        for v in self.data:
-            stream.write(struct.pack('>i', v))
+        stream.write(self.data.tobytes())
     
     def to_bytes(self) -> bytes:
         with io.BytesIO() as buffer:
@@ -255,28 +242,22 @@ class t_longs(nbt_tag):
 
     def __init__(self, data=None):
         if type(data) == list:
-            self.data = list(data)
+            self.data = numpy.array(data, dtype='>i8')
         else:
-            self.data = list()
+            self.data = numpy.array(None, dtype='>i8')
     
     def __getitem__(self, index):
         return self.data[index]
     
     def __setitem__(self, index, value):
-        if -9223372036854775808 <= value < 9223372036854775808:
-            self.data[index] = value
-        elif 9223372036854775808 <= value < 18446744073709551616:
-            self.data[index] = value - 18446744073709551616
-        else:
-            raise Exception('Value is invalid.')
+        self.data[index] = value
 
     def __len__(self):
         return len(self.data)
     
     def write(self, stream):
         stream.write(struct.pack('>i', len(self.data)))
-        for v in self.data:
-            stream.write(struct.pack('>q', v))
+        stream.write(self.data.tobytes())
     
     def to_bytes(self) -> bytes:
         with io.BytesIO() as buffer:
@@ -470,7 +451,7 @@ def dump(tag : nbt_tag, name : str = None) -> bytes:
             stream.write(_ushort_format(len(name)))
             stream.write(name.encode('utf-8'))
         else:
-            stream.write('\x00\x00')
+            stream.write(b'\x00\x00')
         tag.write(stream)
         return stream.getvalue()
 
