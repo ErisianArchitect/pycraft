@@ -136,8 +136,6 @@ class ChunkSection:
             'Y' : nbt.t_byte(self.Y)
         }
         return nbt.t_compound(tag_items)
-
-
     
     def get(self, x, y, z):
         return blockstate.find(self.Blocks[y*256 + z*16 + x])
@@ -182,6 +180,15 @@ class Chunk:
         self.Structures = level_tag['Structures']
         self.xPos = level_tag['xPos'].value
         self.zPos = level_tag['zPos'].value
+    
+    def __getitem__(self, coord):
+        return self.get(*coord)
+    
+    def __setitem__(self, coord, value):
+        self.set(coord[0], coord[1], coord[2], *value)
+    
+    def __delitem__(self, coord):
+        self.set(coord[0], coord[1], coord[2], blockstate.air)
 
     def get(self,x,y,z):
         sect_y = y // 16
