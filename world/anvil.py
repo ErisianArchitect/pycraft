@@ -31,20 +31,25 @@ class Sector(object):
         return self.offset * 4096
     
     def __lt__(self, other):
-        return (self.offset + self.count) <= other.offset
+        if type(other) == Sector:
+            return (self.offset + self.count) <= other.offset
     
     def __gt__(self, other):
-        return self.offset >= (other.offset + other.count)
+        if type(other) == Sector:
+            return self.offset >= (other.offset + other.count)
     
     def __eq__(self, other):
-        return self.offset == other.offset and self.count == other.count
+        if type(other) == Sector:
+            return self.offset == other.offset and self.count == other.count
+        return False
     
     def intersects(self, other):
-        if self.offset <= other.offset and self.end > other.offset:
-            return True
-        if other.offset <= self.offset and other.end > self.offset:
-            return True
-        return False
+        if type(other) == Sector:
+            if self.offset <= other.offset and self.end > other.offset:
+                return True
+            if other.offset <= self.offset and other.end > self.offset:
+                return True
+            return False
     
     def to_bytes(self):
         with io.BytesIO() as buff:
@@ -57,12 +62,22 @@ class Sector(object):
 
 class RegionFile:
 
-    __slots__ = ('filename','chunks','sectors')
+    __slots__ = ('filename','chunks','sectors','loaded_chunks','loaded_indices')
+
+    @staticmethod
+    def get_index(x : int, z : int):
+        return ((x & 31) | ((z & 31) << 5))
+    
+    @staticmethod
+    def expand_index(index):
+        return ((index & 0b11111), ((index & 0b1111100000) >> 5))
 
     def __init__(self, filename : str):
         self.filename = filename
         self.chunks = numpy.ndarray(shape=(1024), dtype=numpy.object_)
-        self.sectors = None
+        self.sectors = []
+        self.loaded_chunks = dict()
+        self.loaded_indices = set()
         if not os.path.exists(self.filename):
             raise FileNotFoundError(self.filename)
         if path.isfile(filename):
@@ -70,10 +85,8 @@ class RegionFile:
                 f.seek(0, os.SEEK_END)
                 size = f.tell()
                 f.seek(0)
-                if size < 8192 or (size % 4096) != 0:
-                    raise Exception('Invalid region file!')
 
-                self.sectors = [Sector(0, 2)]
+                self.sectors.append(Sector(0, 2))
                 for i in range(1024):
                     offset = int.from_bytes(f.read(3), byteorder='big', signed=False)
                     sector_count = int.from_bytes(f.read(1), byteorder='big', signed=False)
@@ -84,73 +97,42 @@ class RegionFile:
                     else:
                         self.chunks[i] = None
     
-    def write_sector(self, sector, index):
-        if not os.path.exists(self.filename):
-            raise FileNotFoundError(self.filename)
-        if path.isfile(self.filename):
-            with open(self.filename, 'wb') as f:
-                f.seek(0, os.SEEK_END)
-                size = f.tell()
-                f.seek(0)
-                if size < 8192 or (size % 4096) != 0:
-                    raise Exception('Invalid region file!')
-                
-                f.seek(index * 4)
-                f.write(sector.offset.to_bytes(3, byteorder='big', signed=False))
-                f.write(sector.count.to_bytes(1, byteorder='big', signed=False))
-                self.chunks[index] = sector
-                bisect.insort(self.sectors, sector)
+    def save(self):
+        output_path = self.filename + '.out'
+        with open(output_path, 'wb') as outfile:
+            with open(self.filename, 'rb') as infile:
+                outfile.write(__null_sector)
+                outfile.write(__null_sector)
+                outfile.seek(0)
+                for i in range(1024):
+                    sect = self.chunks[i]
+                    if sect is not None:
+                        outfile.write(sect.offset.to_bytes(3, 'big', signed=False)
+                        outfile.write(sect.count.to_bytes(1, 'big', signed=False))
+                    else:
+                        outfile.write(b'\x00\x00\x00\x00')
+                utc = arrow.utcnow()
+                utc_ts = utc.int_timestamp
+                utc_bs = utc_ts.to_bytes(4, 'big', signed=False)
+                for i in range(1024):
+                    outfile.write(utc_bs)
+                for i in range(1024):
+                    sect = self.chunks[i]
+                    if sect is not None:
 
-    def delete_sector(self, index, zero_data = False):
-        if not os.path.exists(self.filename):
-            raise FileNotFoundError(self.filename)
+    
+    def set_sector(self, index, sector):
+        self.chunks[index] = sector
+        bisect.insort(self.sectors, sector)
+
+    def delete_sector(self, index):
         if 0 <= index < 1024:
             sect = self.chunks[index]
             if sect != None:
-                with open(self.filename, 'rb') as f:
-                    f.seek(0, os.SEEK_END)
-                    size = f.tell()
-                    f.seek(0)
-                    if size < 8192 or (size % 4096) != 0:
-                        raise Exception('Invalid region file!')
-                    
-                    f.seek(index * 4)
-                    f.write(b'\x00\x00\x00\x00')
-                    self.chunks[index] = None
-                    sect_ind = bisect.bisect_left(self.sectors, sect)
-                    if ind != len(self.sectors) and self.sectors[ind] == sect:
-                        del self.sectors[ind]
-                    if zero_data:
-                        f.seek(sect.offset * 4096)
-                        for _ in range(sect.count):
-                            f.write(__null_sector)
-    
-    def write_timestamp(self, index):
-        if not os.path.exists(self.filename):
-            raise FileNotFoundError(self.filename)
-        if path.isfile(self.filename):
-            with open(self.filename, 'wb') as f:
-                f.seek(0, os.SEEK_END)
-                size = f.tell()
-                f.seek(0)
-                if size < 8192 or (size % 4096) != 0:
-                    raise Exception('Invalid region file!')
-                utc = arrow.utcnow()
-                f.seek(index * 4 + 4096)
-                f.write(utc.int_timestamp.to_bytes(4, 'big', False))
-
-    def read_timestamp(self, index):
-        if not os.path.exists(self.filename):
-            raise FileNotFoundError(self.filename)
-        if path.isfile(self.filename):
-            with open(self.filename, 'rb') as f:
-                f.seek(0, os.SEEK_END)
-                size = f.tell()
-                f.seek(0)
-                if size < 8192 or (size % 4096) != 0:
-                    raise Exception('Invalid region file!')
-                f.seek(index * 4 + 4096)
-                return arrow.Arrow.fromtimestamp(int.from_bytes(f.read(4), 'big', False))
+                sect_ind = bisect.bisect_left(self.sectors, sect)
+                if sect_ind != len(self.sectors) and self.sectors[sect_ind] == sect:
+                    del self.sectors[sect_ind]
+                self.chunks[index] = None
     
     def get_free(self, size_in_bytes,insert=True):
         sector_count = math.ceil(size_in_bytes / 4096)
@@ -168,30 +150,13 @@ class RegionFile:
             bisect.insort(self.sectors, sector)
         return sector
 
-
     def read_chunk(self, offsetX : int, offsetZ : int) -> chunk.Chunk:
-        tag, _ = self.read_chunk_tag(offsetX, offsetZ)
-        return chunk.Chunk(tag)
-    
-    def write_chunk_tag(self, offsetX : int, offsetZ : int, chunk_tag : nbt.nbt_tag):
-        if not os.path.exists(self.filename):
-            raise FileNotFoundError(self.filename)
-        chunk_data = zlib.compress(nbt.dump(chunk_tag))
-        ind = ((offsetX & 31) + (offsetZ & 31) * 32)
-        if self.chunks[ind] != None:
-            self.delete_sector(ind)
-        free = self.get_free(len(chunk_data)+5,True)
-        #ensure the capacity of our file:
-        with open(self.filename, 'wb') as f:
-            offset = free.offset * 4096
-            size = free.count * 4096
-            data_size = len(chunk_data) + 5
-            pad_bytes = size - data_size
-            f.seek(offset)
-            f.write((len(chunk_data) + 1).to_bytes(4, 'big', False))
-            f.write(b'\x02')
-            f.write(bytes(pad_bytes))
-
+        result = self.read_chunk_tag(offsetX, offsetZ)
+        if result is not None:
+            ch = chunk.Chunk(result[0])
+            self.loaded_chunks[offsetX, offsetZ] = ch
+            self.loaded_indices.add(RegionFile.get_index(offsetX, offsetZ))
+            return ch
     
     def read_chunk_tag(self, offsetX : int, offsetZ : int) -> nbt.nbt_tag:
         """
@@ -217,6 +182,31 @@ class RegionFile:
                 return nbt.load(gzip.decompress(f.read(data_length-1)))
             elif compression_type == 3:
                 return nbt.load(f.read(data_length-1))
+    
+    def write_chunk(self, chunk_ : chunk.Chunk):
+        tag = chunk_.to_nbt()
+        self.write_chunk_tag(chunk_.xPos, chunk_.zPos, tag)
+    
+    def write_chunk_tag(self, offsetX : int, offsetZ : int, chunk_tag : nbt.nbt_tag):
+        if not os.path.exists(self.filename):
+            raise FileNotFoundError(self.filename)
+        chunk_data = zlib.compress(nbt.dump(chunk_tag))
+        ind = ((offsetX & 31) + (offsetZ & 31) * 32)
+        if self.chunks[ind] != None:
+            self.delete_sector(ind)
+        free = self.get_free(len(chunk_data)+5)
+        self.set_sector(ind, free)
+        self.chunks[ind] = free
+        #ensure the capacity of our file:
+        with open(self.filename, 'ab') as f:
+            offset = free.offset * 4096
+            f.seek(offset)
+            f.write((len(chunk_data) + 1).to_bytes(4, 'big', signed=False))
+            f.write(b'\x02')
+            f.write(chunk_data)
+
+    
+    
     
     def read_chunk_raw(self, offsetX : int, offsetZ : int) -> bytes:
         if not os.path.exists(self.filename):
