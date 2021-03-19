@@ -29,7 +29,7 @@ def extract_index(full_index, palette_size, block_states):
     mask = 2**bitsize-1
     state_index = full_index // vpl
     value_offset = (full_index % vpl) * bitsize
-    slot = block_states[state_index]
+    slot = int(block_states[state_index])
     return (slot & (mask << value_offset)) >> value_offset
 
 def inject_index(full_index, palette_size, block_states, value):
@@ -52,14 +52,12 @@ def calc_blockstates_size(palette_size):
     vpl = 64 // bitsize
     return (4096 // vpl) + (1 if (4096 % vpl) != 0 else 0)
 
+# TODO: Refactor so that a ChunkSection can be loaded directly from streams.
 class ChunkSection:
 
     @staticmethod
     def from_nbt(section_tag : nbt.nbt_tag):
-        # TODO: Finish the create function. First find out what initial values to use.
-        #self.BlockLight = numpy.zeros(shape=(4096,), dtype='>i1')
         blocklight = None
-        #self.SkyLight = numpy.zeros(shape=(4096,), dtype='>i1')
         skylight = None
         y = None
         if 'Y' in section_tag:
@@ -153,6 +151,9 @@ class ChunkSection:
         elif type(id) == block.BlockState:
             self.Blocks[y*256+z*16+x] = id.unique_key
 
+# TODO: Refactor Chunk to be able to load directly from stream rather than from NBT.
+# TODO: Figure out what data to populate a new chunk with.
+# TODO: Currently, the bottom and top ChunkSections are not valid sections to place blocks in. Figure out how to change that.
 class Chunk:
     __slots__ = ('Biomes', 'CarvingMasks', 'DataVersion', 'Entities', 'Heightmaps', 'InhabitedTime', 'LastUpdate', 'Lights', 'LiquidTicks', 'LiquidsToBeTicked', 'PostProcessing', 'Sections', 'Status', 'Structures', 'TileEntities', 'TileTicks', 'ToBeTicked', 'xPos', 'zPos')
 
