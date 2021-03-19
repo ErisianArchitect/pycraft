@@ -60,7 +60,11 @@ class Sector(object):
     def __repr__(self):
         return f'Sector(offset={self.offset}, count={self.count})'
 
+# TODO: Refactor RegionFile
+#   I'm going to need to completely rewrite the region files upon saving them, so I'm going to work
+#   out some kind of system to do that.
 class RegionFile:
+    #   This class looks AWFUL right now. We can fix that.
 
     __slots__ = ('filename','chunks','sectors','loaded_chunks','loaded_indices')
 
