@@ -16,5 +16,9 @@ __convertible_types = {
     numpy.ndarray
 }
 
-def isconvertable(type_ : type):
-    return type_ in __convertible_types
+def isconvertable(cls : type):
+    return cls in __convertible_types
+
+def convert(value):
+    if not isconvertable(type(value)):
+        return None
