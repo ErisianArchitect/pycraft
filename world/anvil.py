@@ -220,9 +220,6 @@ class RegionFile:
             elif compression_type == 3:
                 return nbt.load(f.read(data_length-1))
 
-    
-    
-    
     def read_chunk_raw(self, offsetX : int, offsetZ : int) -> bytes:
         if not os.path.exists(self.filename):
             raise FileNotFoundError(self.filename)
@@ -251,4 +248,4 @@ class RegionFile:
         ind = ((offsetX & 31) + (offsetZ & 31) * 32)
         with open(self.filename, 'rb') as f:
             f.seek(ind * 4)
-            return int.from_bytes(f.read(3), 'big') != 0
+            return int.from_bytes(f.read(4), 'big') != 0
