@@ -11,6 +11,10 @@ There is very little that is usable here, if anything at all.
 Also, there are errors.
 """
 
+# TODO: Research
+#       We'll need to update a lot of different stuff in the chunk in order for it to be more valid to Minecraft.
+#       Things to consider are things like heightmaps, TileEntities, water/lava sources, light sources, etc.
+
 def nibble4(arr, index):
     return arr[index//2] & 0x0F if index % 2 == 0 else (arr[index//2]>>4) & 0x0F
 
@@ -19,9 +23,6 @@ def chunk_block_index(*args):
         return args[1]*256+args[2]*16+args[0]
     else:
         return args[0][1]*256+args[0][2]*16+args[0][0]
-
-def chunk_index_bitsize(palette_size):
-    return max(math.ceil(math.log2(palette_size)), 4)
 
 def extract_index(full_index, palette_size, block_states):
     bitsize = max((palette_size - 1).bit_length(), 4)
