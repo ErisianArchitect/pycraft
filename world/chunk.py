@@ -4,6 +4,7 @@ from . import util
 from . import nbt
 from . import block
 
+
 """
 As of March 16th, 2021 at 4:45AM(UTC), this file is severely incomplete.
 There is very little that is usable here, if anything at all.
@@ -142,9 +143,13 @@ class ChunkSection:
         return nbt.t_compound(tag_items)
     
     def get(self, x, y, z):
+        if self.Blocks is None:
+            return block.air
         return block.find(self.Blocks[y*256 + z*16 + x])
     
     def set(self, x, y, z, id, props = {}):
+        if self.Blocks is None:
+            return
         if type(id) == str:
             state = block.register(id, props)
             self.Blocks[y*256 + z*16 + x] = state.unique_key
