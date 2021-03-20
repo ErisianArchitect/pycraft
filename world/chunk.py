@@ -155,11 +155,12 @@ class ChunkSection:
 # TODO: Figure out what data to populate a new chunk with.
 # TODO: Currently, the bottom and top ChunkSections are not valid sections to place blocks in. Figure out how to change that.
 class Chunk:
-    __slots__ = ('Biomes', 'CarvingMasks', 'DataVersion', 'Entities', 'Heightmaps', 'InhabitedTime', 'LastUpdate', 'Lights', 'LiquidTicks', 'LiquidsToBeTicked', 'PostProcessing', 'Sections', 'Status', 'Structures', 'TileEntities', 'TileTicks', 'ToBeTicked', 'xPos', 'zPos')
+    __slots__ = ('Biomes', 'CarvingMasks', 'DataVersion', 'Entities', 'Heightmaps', 'InhabitedTime', 'LastUpdate', 'Lights', 'LiquidTicks', 'LiquidsToBeTicked', 'PostProcessing', 'Sections', 'Status', 'Structures', 'TileEntities', 'TileTicks', 'ToBeTicked', 'xPos', 'zPos','isDirty')
 
     _level_tag_slots = ('Biomes', 'CarvingMasks', 'Entities', 'Heightmaps', 'InhabitedTime', 'LastUpdate', 'Lights', 'LiquidTicks', 'LiquidsToBeTicked', 'PostProcessing', 'Status', 'Structures', 'TileEntities', 'TileTicks', 'ToBeTicked')
 
     def __init__(self, chunk_tag):
+        self.isDirty = False
         self.DataVersion = chunk_tag['DataVersion'].value
         level_tag = chunk_tag['Level']
 
@@ -230,6 +231,7 @@ class Chunk:
                 return block.air
     
     def set(self, x, y, z, id, props={}):
+        self.isDirty = True
         sect_y = y // 16
         chunk_y = y % 16
         if -1 <= sect_y < 16:
