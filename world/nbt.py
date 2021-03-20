@@ -8,6 +8,9 @@ load(data) requires that data be of type bytes. This function returns an nbt tag
 
 """
 
+# TODO: Do some more research to determine if we can create an NBT tree structure consisting of more pure python objects.
+#       This should be possible if we use numpy types (int8, int16, int32, int64, etc.)
+
 from abc import ABC, abstractmethod
 import struct
 import io
