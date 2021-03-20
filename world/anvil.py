@@ -195,6 +195,7 @@ class RegionFile:
             self.loaded_indices.add(RegionFile.get_index(offsetX, offsetZ))
             return ch
     
+    # TODO: Determine if this function is necessary, or if it can be moved into read_chunk(...)
     def read_chunk_tag(self, offsetX : int, offsetZ : int) -> nbt.nbt_tag:
         """
         Reads the chunk (decompressed) from the region file and returns the NBT.
@@ -220,6 +221,7 @@ class RegionFile:
             elif compression_type == 3:
                 return nbt.load(f.read(data_length-1))
 
+    # TODO: Determine if this function is necessary.
     def read_chunk_raw(self, offsetX : int, offsetZ : int) -> bytes:
         if not os.path.exists(self.filename):
             raise FileNotFoundError(self.filename)
