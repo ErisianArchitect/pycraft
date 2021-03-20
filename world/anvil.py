@@ -135,50 +135,33 @@ class RegionFile:
             with open(self.filename, 'rb') as infile:
                 #   First write 8192 bytes to the file.
                 #   This is where sector information and timestamps are stored.
-                #   TODO: Don't forget to change the sector data after writing to the region file.
                 outfile.write(null_sector)
                 outfile.write(null_sector)
-
                 # First write all the data while saving the sector information.
                 # After writing all the data, seek to the beginning of the file and write the header data.
-
                 new_sectors = numpy.ndarray(shape=(1024,), dtype=numpy.object_)
 
                 for i in range(1024):
-
                     new_sect = Sector(0,0)
-
                     file_offset = outfile.tell()
-
                     new_sect.offset = file_offset // 4096
 
                     if i in self.loaded_indices:
-
                         coord = RegionFile.expand_index(i)
                         loaded_chunk = self.loaded_chunks[coord]
                         if loaded_chunk is not None:
                             # TODO: Eventually I plan on writing a save function for Chunk that doesn't require converting to NBT.
                             chunk_nbt = loaded_chunk.to_nbt()
                             chunk_data = zlib.compress(nbt.dump(chunk_nbt))
-
                             chunk_size = len(chunk_data)
-
                             data_length = chunk_size + 1
-
                             total_size = chunk_size + 5
+                            pad_size = 0 if ((total_size) % 4096) == 0) else (4096 - (total_size % 4096))
 
-                            pad_size = 0
-
-                            if (total_size % 4096) != 0:
-                                pad_size = 4096 - (total_size % 4096)
-                            
                             padded_size = total_size + pad_size
-
                             new_sect.count = padded_size // 4096
-
                             outfile.write(data_length.to_bytes(4, 'big', signed=False))
                             outfile.write(b'\x02')
-
                             outfile.write(chunk_data)
                             outfile.write(bytes(pad_size))
                     else:
