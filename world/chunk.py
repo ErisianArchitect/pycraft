@@ -15,6 +15,7 @@ Also, there are errors.
 #       We'll need to update a lot of different stuff in the chunk in order for it to be more valid to Minecraft.
 #       Things to consider are things like heightmaps, TileEntities, water/lava sources, light sources, etc.
 
+# TODO: nibble4() and chunk_block_index are likely useless, so we might remove them later.
 def nibble4(arr, index):
     return arr[index//2] & 0x0F if index % 2 == 0 else (arr[index//2]>>4) & 0x0F
 
@@ -40,14 +41,14 @@ def inject_index(full_index, palette_size, block_states, value):
     vpl = 64 // bitsize
     mask = 2**bitsize-1
     masked_value = value & mask
+    #state_index is the index in the array of longs that our value will be injected to.
     state_index = full_index // vpl
+    #value_offset represents the number of bits to shift to form our mask for setting the value.
     value_offset = (full_index % vpl) * bitsize
-
-    tmp = block_states[state_index]
-
-    tmp = (tmp & ~(mask << value_offset)) | (value << value_offset)
-
-    block_states[state_index] = tmp
+    #block_state will be a 64 bit integer
+    block_state = block_states[state_index]
+    #Injecting our value to the block_state
+    block_states[state_index] = (block_state & ~(mask << value_offset)) | (value << value_offset)
 
 def calc_blockstates_size(palette_size):
     bitsize = max((palette_size - 1).bit_length(), 4)
@@ -148,6 +149,7 @@ class ChunkSection:
             return block.air
         return block.find(self.Blocks[y*256 + z*16 + x])
     
+    # TODO: Update lighting and heightmaps
     def set(self, x, y, z, id, props = {}):
         if self.Blocks is None:
             return
