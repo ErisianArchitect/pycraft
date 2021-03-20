@@ -204,36 +204,6 @@ class RegionFile:
         # Now we are done writing to the output file, so we will swap it with the original.
         os.replace(output_path, self.filename)
 
-
-    def set_sector(self, index, sector):
-        self.chunks[index] = sector
-        bisect.insort(self.sectors, sector)
-
-    def delete_sector(self, index):
-        if 0 <= index < 1024:
-            sect = self.chunks[index]
-            if sect != None:
-                sect_ind = bisect.bisect_left(self.sectors, sect)
-                if sect_ind != len(self.sectors) and self.sectors[sect_ind] == sect:
-                    del self.sectors[sect_ind]
-                self.chunks[index] = None
-    
-    def get_free(self, size_in_bytes,insert=True):
-        sector_count = math.ceil(size_in_bytes / 4096)
-        for i in range(0, len(self.sectors) - 1):
-            dist_between = self.sectors[i+1].offset - self.sectors[i].end
-            if dist_between >= sector_count:
-                sector = Sector(self.sectors[i].end, sector_count)
-                if insert:
-                    bisect.insort(self.sectors, sector)
-                return sector
-        #   We reached the end of the file, so we'll need to append some sectors.
-        end_sector = self.sectors[-1]
-        sector = Sector(end_sector.end, sector_count)
-        if insert:
-            bisect.insort(self.sectors, sector)
-        return sector
-
     def read_chunk(self, offsetX : int, offsetZ : int) -> chunk.Chunk:
         result = self.read_chunk_tag(offsetX, offsetZ)
         if result is not None:
@@ -266,28 +236,6 @@ class RegionFile:
                 return nbt.load(gzip.decompress(f.read(data_length-1)))
             elif compression_type == 3:
                 return nbt.load(f.read(data_length-1))
-    
-    def write_chunk(self, chunk_ : chunk.Chunk):
-        tag = chunk_.to_nbt()
-        self.write_chunk_tag(chunk_.xPos, chunk_.zPos, tag)
-    
-    def write_chunk_tag(self, offsetX : int, offsetZ : int, chunk_tag : nbt.nbt_tag):
-        if not os.path.exists(self.filename):
-            raise FileNotFoundError(self.filename)
-        chunk_data = zlib.compress(nbt.dump(chunk_tag))
-        ind = ((offsetX & 31) + (offsetZ & 31) * 32)
-        if self.chunks[ind] != None:
-            self.delete_sector(ind)
-        free = self.get_free(len(chunk_data)+5)
-        self.set_sector(ind, free)
-        self.chunks[ind] = free
-        #ensure the capacity of our file:
-        with open(self.filename, 'ab') as f:
-            offset = free.offset * 4096
-            f.seek(offset)
-            f.write((len(chunk_data) + 1).to_bytes(4, 'big', signed=False))
-            f.write(b'\x02')
-            f.write(chunk_data)
 
     
     
