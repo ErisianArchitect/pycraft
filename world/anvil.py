@@ -156,7 +156,7 @@ class RegionFile:
                             chunk_size = len(chunk_data)
                             data_length = chunk_size + 1
                             total_size = chunk_size + 5
-                            pad_size = 0 if ((total_size) % 4096) == 0) else (4096 - (total_size % 4096))
+                            pad_size = 0 if ((total_size) % 4096) == 0 else (4096 - (total_size % 4096))
 
                             padded_size = total_size + pad_size
                             new_sect.count = padded_size // 4096
