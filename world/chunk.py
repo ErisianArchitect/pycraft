@@ -159,14 +159,35 @@ class ChunkSection:
         elif type(id) == block.BlockState:
             self.Blocks[y*256+z*16+x] = id.unique_key
 
+class Heightmaps:
+
+    @staticmethod
+    def expand_heightmap(arr):
+        """
+        This function will take a numpy array of longs and convert it to 256 unsigned int16s representing the heights.
+        """
+        result = numpy.zeros(shape=(256,), dtype=numpy.uint16)
+        
+
+    __slots__ = ('ocean_floor', 'motion_blocking_no_leaves', 'motion_blocking', 'world_surface')
+
+    def __init__(self, heightmaps_tag : nbt.t_compound):
+        self.ocean_floor = heightmaps_tag['OCEAN_FLOOR']
+        self.motion_blocking_no_leaves = heightmaps_tag['MOTION_BLOCKING_NO_LEAVES']
+
+
 # TODO: Refactor Chunk to be able to load directly from stream rather than from NBT.
 # TODO: Figure out what data to populate a new chunk with.
 # TODO: Currently, the bottom and top ChunkSections are not valid sections to place blocks in. Figure out how to change that.
 class Chunk:
     __slots__ = ('Biomes', 'CarvingMasks', 'DataVersion', 'Entities', 'Heightmaps', 'InhabitedTime', 'LastUpdate', 'Lights', 'LiquidTicks', 'LiquidsToBeTicked', 'PostProcessing', 'Sections', 'Status', 'Structures', 'TileEntities', 'TileTicks', 'ToBeTicked', 'xPos', 'zPos','isDirty')
 
-    _level_tag_slots = ('Biomes', 'CarvingMasks', 'Entities', 'Heightmaps', 'InhabitedTime', 'LastUpdate', 'Lights', 'LiquidTicks', 'LiquidsToBeTicked', 'PostProcessing', 'Status', 'Structures', 'TileEntities', 'TileTicks', 'ToBeTicked')
+    _level_tag_slots = ('Biomes', 'CarvingMasks', 'Entities', 'Heightmaps', 'Lights', 'LiquidTicks', 'LiquidsToBeTicked', 'PostProcessing', 'Status', 'Structures', 'TileEntities', 'TileTicks', 'ToBeTicked')
 
+    # Tags that will not have values:
+    #   CarvingMasks
+    #   Lights (I believe this is used for worldgen)
+    #   LiquidsToBeTicked
     def __init__(self, chunk_tag):
         self.isDirty = False
         self.DataVersion = chunk_tag['DataVersion'].value
@@ -174,6 +195,9 @@ class Chunk:
 
         self.xPos = level_tag['xPos'].value
         self.zPos = level_tag['zPos'].value
+
+        self.InhabitedTime = level_tag['InhabitedTime'].value
+        self.LastUpdate = level_tag['LastUpdate'].value
 
         sections = level_tag['Sections']
 
@@ -202,6 +226,9 @@ class Chunk:
             sections.append(self.Sections[key].to_nbt())
         
         level_data['Sections'] = nbt.t_list(nbt.t_compound, sections)
+
+        level_data['InhabitedTime'] = nbt.t_long(self.InhabitedTime)
+        level_data['LastUpdate'] = nbt.t_long(self.LastUpdate)
 
         for key in Chunk._level_tag_slots:
             tmp = getattr(self, key, None)
