@@ -88,6 +88,9 @@ class t_byte(nbt_tag):
                 return int(other) == self.value
             except:
                 return self.value == other
+    
+    def __repr__(self):
+        return str(self.value)
 
 class t_short(nbt_tag):
     __slots__ = ('value',)
@@ -119,6 +122,9 @@ class t_short(nbt_tag):
                 return int(other) == self.value
             except:
                 return self.value == other
+    
+    def __repr__(self):
+        return str(self.value)
 
 
 class t_int(nbt_tag):
@@ -151,6 +157,9 @@ class t_int(nbt_tag):
                 return int(other) == self.value
             except:
                 return self.value == other
+    
+    def __repr__(self):
+        return str(self.value)
 
 class t_long(nbt_tag):
     __slots__ = ('value',)
@@ -182,6 +191,9 @@ class t_long(nbt_tag):
                 return int(other) == self.value
             except:
                 return self.value == other
+    
+    def __repr__(self):
+        return str(self.value)
 
 class t_float(nbt_tag):
     __slots__ = ('value',)
@@ -208,6 +220,9 @@ class t_float(nbt_tag):
                 return float(other) == self.value
             except:
                 return self.value == other
+    
+    def __repr__(self):
+        return str(self.value)
 
 class t_double(nbt_tag):
     __slots__ = ('value',)
@@ -238,6 +253,9 @@ class t_double(nbt_tag):
                 return float(other) == self.value
             except:
                 return self.value == other
+    
+    def __repr__(self):
+        return str(self.value)
 
 class t_string(nbt_tag):
     __slots__ = ('value',)
