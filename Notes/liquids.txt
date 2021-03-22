@@ -1,3 +1,3 @@
 Water source blocks have a level of 0.
-    It appears that the level increases as the water gets
-    further away until it reaches 7, at which point it no longer propagates.
+    Falling water seems to have a level of 8.
+    Water level decreases to 1 as it gets further away from a source block.
