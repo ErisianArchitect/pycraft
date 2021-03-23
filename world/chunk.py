@@ -219,7 +219,7 @@ class Heightmaps:
         self.world_surface = unpack_heightmap(heightmaps_tag['WORLD_SURFACE'].data)
     
     def to_nbt(self):
-
+        pass
 
 
 # TODO: Refactor Chunk to be able to load directly from stream rather than from NBT.
