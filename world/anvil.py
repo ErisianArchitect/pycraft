@@ -127,8 +127,6 @@ class RegionFile:
         When it encounters a chunk that has been loaded, it will write that chunk to the file instead
         of the data that is in the region file.
         """
-        # TODO: Check if the region file will even change.
-        #       This can be accomplished by setting a "dirty" flag on the region file and chunks.
         output_path = self.filename + '.out'
         with open(output_path, 'wb') as outfile:
             with open(self.filename, 'rb') as infile:
