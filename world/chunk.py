@@ -2,7 +2,7 @@ import math
 import numpy
 from . import util
 from . import nbt
-from . import block
+from . import blockregistry
 
 
 __all__ = ['Chunk', 'ChunkSection']
@@ -90,7 +90,7 @@ class ChunkSection:
                 props = {}
                 if 'Properties' in v:
                     props = { k : val.value for k, val in v.Properties.data.items() }
-                states.append(block.register(name, props))
+                states.append(blockregistry.register(name, props))
             
             for i in range(4096):
                 ind = extract_index(i, len(palette.data), states_tag.data)
@@ -116,7 +116,7 @@ class ChunkSection:
             tag_items['BlockLight'] = blocklight
 
         if self.Blocks is not None:
-            palette = [block.find(x) for x in set(self.Blocks)]
+            palette = [blockregistry.find(x) for x in set(self.Blocks)]
             palette_table = { v.unique_key : i for i, v in enumerate(palette) if v is not None }
             states = numpy.zeros(shape=(calc_blockstates_size(len(palette))), dtype='>i8')
 
@@ -125,7 +125,7 @@ class ChunkSection:
             
             tag_items['BlockStates'] = nbt.t_longs(states)
 
-            palette_items = [block.BlockState.to_nbt(v) for v in palette]
+            palette_items = [blockregistry.BlockState.to_nbt(v) for v in palette]
 
             tag_items['Palette'] = nbt.t_list(nbt.t_compound, palette_items)
 
@@ -142,17 +142,17 @@ class ChunkSection:
     
     def get(self, x, y, z):
         if self.Blocks is None:
-            return block.air
-        return block.find(self.Blocks[y*256 + z*16 + x])
+            return blockregistry.air
+        return blockregistry.find(self.Blocks[y*256 + z*16 + x])
     
     # TODO: Update lighting and heightmaps
     def set(self, x, y, z, id, props = {}):
         if self.Blocks is None:
             return
         if type(id) == str:
-            state = block.register(id, props)
+            state = blockregistry.register(id, props)
             self.Blocks[y*256 + z*16 + x] = state.unique_key
-        elif type(id) == block.BlockState:
+        elif type(id) == blockregistry.BlockState:
             self.Blocks[y*256+z*16+x] = id.unique_key
 
 class Heightmaps:
@@ -297,7 +297,7 @@ class Chunk:
         self.set(coord[0], coord[1], coord[2], *value)
     
     def __delitem__(self, coord):
-        self.set(coord[0], coord[1], coord[2], block.air)
+        self.set(coord[0], coord[1], coord[2], blockregistry.air)
     
     def remove(self, x, y, z):
         self.set(x,y,z, 'minecraft:air')
@@ -309,7 +309,7 @@ class Chunk:
             if sect_y in self.Sections:
                 return self.Sections[sect_y].get(x,chunk_y, z)
             else:
-                return block.air
+                return blockregistry.air
     
     def set(self, x, y, z, id, props={}):
         self.isDirty = True
