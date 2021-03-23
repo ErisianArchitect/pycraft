@@ -19,6 +19,8 @@ from . import util
 from . import nbtutil
 import numpy
 
+__all__ = ['t_byte', 't_short', 't_int', 't_long', 't_float', 't_double', 't_string', 't_list', 't_compound', 't_bytes','t_ints', 't_longs', 'load', 'dump']
+
 def read_byte(stream):
     return int.from_bytes(stream.read(1),'big',signed=True)
 

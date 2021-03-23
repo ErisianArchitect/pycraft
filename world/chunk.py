@@ -5,11 +5,7 @@ from . import nbt
 from . import block
 
 
-"""
-As of March 16th, 2021 at 4:45AM(UTC), this file is severely incomplete.
-There is very little that is usable here, if anything at all.
-Also, there are errors.
-"""
+__all__ = ['Chunk', 'ChunkSection']
 
 # TODO: Research
 #       We'll need to update a lot of different stuff in the chunk in order for it to be more valid to Minecraft.

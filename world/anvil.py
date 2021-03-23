@@ -12,6 +12,8 @@ from . import chunk
 
 null_sector = bytes(4096)
 
+__all__ = ['Sector', 'RegionFile']
+
 class Sector(object):
     __slots__ = ('offset', 'count')
     def __init__(self, offset, count):
