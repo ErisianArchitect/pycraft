@@ -1,5 +1,5 @@
 #   Auto-generated code file.
-from . import block
+from . import blockregistry
 
 acacia_button                      = register('minecraft:acacia_button')
 acacia_door                        = register('minecraft:acacia_door')
