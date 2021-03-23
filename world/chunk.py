@@ -158,18 +158,68 @@ class ChunkSection:
 class Heightmaps:
 
     @staticmethod
-    def expand_heightmap(arr):
+    def unpack_heightmap(arr):
         """
         This function will take a numpy array of longs and convert it to 256 unsigned int16s representing the heights.
         """
         result = numpy.zeros(shape=(256,), dtype=numpy.uint16)
+        #   This is a tough one-liner, so let me break it down.
+        #   There should be 37 values in arr with 7 values packed into each.
+        #   So in order extract a value by index, we must figure out the index within arr first.
+        #   To do that, we simply use the floor division operator to divide the full index by 7.
+        #   Example:
+        #       >>> 43 // 7
+        #       6
+        #   This means that the index in the array that we will find our value is 6.
+        #   Next, we must extract from the value at that index.
+        #   To do so, we create a bit mask of 9 bits. (0b111111111 or 0x1ff)
+        #   We need to shift that mask to the bits that represent the value we want to extract.
+        #   To get the number of bits to shift, you simply modulo our full index by 7.
+        #       >>> 43 % 7
+        #       1
+        #   So now we know that the index should be 1.
+        #   We multiply that value by 9 to get our shift count.
+        #       >>> 1 * 9
+        #       9
+        #   We'll need to use this same value later to shift our value BACK to the 0 index.
+        #   We now can left-shift our mask by 9 bits.
+        #       >>> 0x1FF << 9
+        #       261632
+        #   With our new bit mask, we simply apply the bitwise AND operator with our arr value.
+        #       >>> arr[6] & 261632
+        #   We can then get our final value by right-shifting back to 0. Remember that value from earlier?
+        #       >>> (arr[6] & 261632) >> 9
+        #   And that is how this one-liner works.
+        #   I know this comment seems excessive, but I would hate for anyone to look at this gargantuan
+        #   one-liner and think to themselves "What the fuck does this even do?"
+        #   The anwer to that question is that it extracts a 9-bit value from a 64-bit value within an
+        #   array of 64-bit values.
+        extract = lambda index: (result[index // 7] & (0x1FF << ((index % 7) * 9))) >> ((index % 7) * 9)
+        for i in range(256):
+            result[i] = extract(i)
+        return result
+    
+    @staticmethod
+    def pack_heightmap(arr):
+        mask = 0x1FF
+        result = numpy.zeros(shape=(37,), dtype=numpy.int64)
+        ind = 0
+        # TODO: Write inject lambda function to inject values into result.
+        for i in range(37):
+            for bi in range(7):
+                pass
         
 
     __slots__ = ('ocean_floor', 'motion_blocking_no_leaves', 'motion_blocking', 'world_surface')
 
     def __init__(self, heightmaps_tag : nbt.t_compound):
-        self.ocean_floor = heightmaps_tag['OCEAN_FLOOR']
-        self.motion_blocking_no_leaves = heightmaps_tag['MOTION_BLOCKING_NO_LEAVES']
+        self.ocean_floor = unpack_heightmap(heightmaps_tag['OCEAN_FLOOR'].data)
+        self.motion_blocking_no_leaves = unpack_heightmap(heightmaps_tag['MOTION_BLOCKING_NO_LEAVES'].data)
+        self.motion_blocking = unpack_heightmap(heightmaps_tag['MOTION_BLOCKING'].data)
+        self.world_surface = unpack_heightmap(heightmaps_tag['WORLD_SURFACE'].data)
+    
+    def to_nbt(self):
+
 
 
 # TODO: Refactor Chunk to be able to load directly from stream rather than from NBT.
