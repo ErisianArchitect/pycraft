@@ -3,8 +3,14 @@ This module is for the block state registry. All block states are registered her
 """
 import functools
 from . import nbt
+from . import blocks
 
 __all__ = ['BlockState', 'find', 'register']
+
+# TODO: We have a json file with all the block ids available in the game.
+#       We can create a new code file to hold all those values.
+#       In that new code file, we can also register each of those values.
+#       The best way to do that is by generating a codefile using the values.
 
 class BlockState:
     __slots__ = ('unique_key', 'id', 'properties')
@@ -66,9 +72,9 @@ def register(id : str, props = {}) -> BlockState:
             _id_state_registry[id] = [state]
         return state
 
-air = register('minecraft:air')
-bedrock = register('minecraft:bedrock')
-stone = register('minecraft:stone')
-dirt = register('minecraft:dirt')
-grass = register('minecraft:grass_block')
-barrier = register('minecraft:barrier')
+air = blocks.air
+bedrock = blocks.bedrock
+stone = blocks.stone
+dirt = blocks.dirt
+grass = blocks.grass
+barrier = blocks.barrier
