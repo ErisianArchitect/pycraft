@@ -62,9 +62,6 @@ class Sector(object):
     def __repr__(self):
         return f'Sector(offset={self.offset}, count={self.count})'
 
-# TODO: Refactor RegionFile
-#   I'm going to need to completely rewrite the region files upon saving them, so I'm going to work
-#   out some kind of system to do that.
 class RegionFile:
     """
     Class used to represent Minecraft Region files in the Anvil file format.
@@ -147,25 +144,25 @@ class RegionFile:
                     new_sect = Sector(0,0)
                     file_offset = outfile.tell()
                     new_sect.offset = file_offset // 4096
+                    coord = RegionFile.expand_index(i)
+                    loaded_chunk = self.loaded_chunk.get(coord, None)
 
-                    if i in self.loaded_indices:
-                        coord = RegionFile.expand_index(i)
-                        loaded_chunk = self.loaded_chunks[coord]
-                        if loaded_chunk is not None:
-                            # TODO: Eventually I plan on writing a save function for Chunk that doesn't require converting to NBT.
-                            chunk_nbt = loaded_chunk.to_nbt()
-                            chunk_data = zlib.compress(nbt.dump(chunk_nbt))
-                            chunk_size = len(chunk_data)
-                            data_length = chunk_size + 1
-                            total_size = chunk_size + 5
-                            pad_size = 0 if ((total_size) % 4096) == 0 else (4096 - (total_size % 4096))
+                    if loaded_chunk is not None and loaded_chunk.isDirty:
+                        # TODO: Eventually I plan on writing a save function for Chunk that doesn't require converting to NBT.
+                        chunk_nbt = loaded_chunk.to_nbt()
+                        chunk_data = zlib.compress(nbt.dump(chunk_nbt))
+                        chunk_size = len(chunk_data)
+                        data_length = chunk_size + 1
+                        total_size = chunk_size + 5
+                        pad_size = 0 if ((total_size) % 4096) == 0 else (4096 - (total_size % 4096))
 
-                            padded_size = total_size + pad_size
-                            new_sect.count = padded_size // 4096
-                            outfile.write(data_length.to_bytes(4, 'big', signed=False))
-                            outfile.write(b'\x02')
-                            outfile.write(chunk_data)
-                            outfile.write(bytes(pad_size))
+                        padded_size = total_size + pad_size
+                        new_sect.count = padded_size // 4096
+                        outfile.write(data_length.to_bytes(4, 'big', signed=False))
+                        outfile.write(b'\x02')
+                        outfile.write(chunk_data)
+                        outfile.write(bytes(pad_size))
+                        loaded_chunk.isDirty = False
                     else:
                         #   The chunk hasn't been loaded, so we'll just write it from the infile.
                         sect = self.chunks[i]
