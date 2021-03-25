@@ -203,11 +203,13 @@ class Heightmaps:
     def pack_heightmap(arr):
         mask = 0x1FF
         result = numpy.zeros(shape=(37,), dtype=numpy.int64)
-        ind = 0
+        inject = lambda long, index, value: (long & ~(0x1FF << (index * 9))) | (value << (index * 9))
         # TODO: Write inject lambda function to inject values into result.
-        for i in range(37):
-            for bi in range(7):
-                pass
+        for i in range(256):
+            resindex = i // 7
+            subind = i % 7
+            result[resind] = inject(result[resind], subind, arr[i])
+        return result
         
 
     __slots__ = ('ocean_floor', 'motion_blocking_no_leaves', 'motion_blocking', 'world_surface')
