@@ -34,6 +34,9 @@ class Sector(object):
     
     @property
     def size(self) -> int:
+        """
+        Returns the total size in bytes of this sector. (count * 4096)
+        """
         return self.count * 4096
     
     @property
@@ -148,8 +151,7 @@ class RegionFile:
 
                 for i in range(1024):
                     new_sect = Sector(0,0)
-                    file_offset = outfile.tell()
-                    new_sect.offset = file_offset // 4096
+                    new_sect.offset = outfile.tell() // 4096
                     coord = RegionFile.expand_index(i)
                     loaded_chunk = self.loaded_chunk.get(coord, None)
 
