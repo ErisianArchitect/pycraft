@@ -15,13 +15,21 @@ null_sector = bytes(4096)
 __all__ = ['Sector', 'RegionFile']
 
 class Sector(object):
+    """
+    An object that represents the area of the file that a chunk is located at.
+    : int offset : The offset in the file in chunks of 1 KiB (4096 bytes).
+    : int count  : The number off 1 KiB (4096 bytes) segments required for this sector.
+    """
     __slots__ = ('offset', 'count')
-    def __init__(self, offset, count):
+    def __init__(self, offset : int, count : int):
         self.offset = offset
         self.count = count
     
     @property
     def end(self) -> int:
+        """
+        Returns the end of this sector, which is also the beginning of the next.
+        """
         return self.offset + self.count
     
     @property
@@ -67,10 +75,10 @@ class RegionFile:
     Class used to represent Minecraft Region files in the Anvil file format.
     This function includes functions for loading chunks, and will have functions for saving in the future.
     """
-    #   This class looks AWFUL right now. We can fix that.
-    #   I'm thinking of extracting all the data from the region file then
-    #   putting each chunk into a seperate files for easy modification.
-    #   Once the user is done modifying the chunks, they can save them back into the region file.
+    # This class looks AWFUL right now. We can fix that.
+    # I'm thinking of extracting all the data from the region file then
+    # putting each chunk into a seperate files for easy modification.
+    # Once the user is done modifying the chunks, they can save them back into the region file.
 
     __slots__ = ('filename','chunks','sectors','loaded_chunks','loaded_indices')
 
@@ -130,8 +138,8 @@ class RegionFile:
         output_path = self.filename + '.out'
         with open(output_path, 'wb') as outfile:
             with open(self.filename, 'rb') as infile:
-                #   First write 8192 bytes to the file.
-                #   This is where sector information and timestamps are stored.
+                # First write 8192 bytes to the file.
+                # This is where sector information and timestamps are stored.
                 outfile.write(null_sector)
                 outfile.write(null_sector)
                 # First write all the data while saving the sector information.
@@ -162,7 +170,7 @@ class RegionFile:
                         outfile.write(bytes(pad_size))
                         loaded_chunk.isDirty = False
                     else:
-                        #   The chunk hasn't been loaded, so we'll just write it from the infile.
+                        # The chunk hasn't been loaded, so we'll just write it from the infile.
                         sect = self.chunks[i]
                         if sect is not None:
                             infile.seek(sect.offset * 4096)
@@ -172,7 +180,7 @@ class RegionFile:
                             new_sect.offset = 0
                             new_sect.count = 0
                     new_sectors[i] = new_sect if new_sect.count > 0 and new_sect.offset >= 2 else None
-                #   Now we will write the sector information to the file.
+                # Now we will write the sector information to the file.
                 outfile.seek(0)
                 null_data4 = b'\x00\x00\x00\x00'
                 for i in range(1024):
