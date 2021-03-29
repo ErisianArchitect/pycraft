@@ -3,6 +3,7 @@ import numpy
 from . import util
 from . import nbt
 from . import blockregistry
+from . import blocks
 
 
 __all__ = ['Chunk', 'ChunkSection']
@@ -142,7 +143,7 @@ class ChunkSection:
     
     def get(self, x, y, z):
         if self.Blocks is None:
-            return blockregistry.air
+            return blocks.air
         return blockregistry.find(self.Blocks[y*256 + z*16 + x])
     
     # TODO: Update lighting and heightmaps
@@ -203,8 +204,9 @@ class Heightmaps:
     def pack_heightmap(arr):
         mask = 0x1FF
         result = numpy.zeros(shape=(37,), dtype=numpy.int64)
+        # This does the opposite of what extract does in unpack_heightmap.
+        # this will return a new 63 bit (or less) long value with value injected at index.
         inject = lambda long, index, value: (long & ~(0x1FF << (index * 9))) | (value << (index * 9))
-        # TODO: Write inject lambda function to inject values into result.
         for i in range(256):
             resindex = i // 7
             subind = i % 7
@@ -299,7 +301,7 @@ class Chunk:
         self.set(coord[0], coord[1], coord[2], *value)
     
     def __delitem__(self, coord):
-        self.set(coord[0], coord[1], coord[2], blockregistry.air)
+        self.set(coord[0], coord[1], coord[2], blocks.air)
     
     def remove(self, x, y, z):
         self.set(x,y,z, 'minecraft:air')
@@ -311,7 +313,7 @@ class Chunk:
             if sect_y in self.Sections:
                 return self.Sections[sect_y].get(x,chunk_y, z)
             else:
-                return blockregistry.air
+                return blocks.air
     
     def set(self, x, y, z, id, props={}):
         self.isDirty = True
