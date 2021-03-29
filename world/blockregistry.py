@@ -72,14 +72,3 @@ def register(id : str, props = {}) -> BlockState:
         else:
             _id_state_registry[id] = [state]
         return state
-
-# Although I prefer to put my imports at the top of a code file, this needs to be at the bottom
-# otherwise there will be circular referencing. (there are calls to blockregistry.register in blocks.py)
-from . import blocks
-
-air = blocks.air
-bedrock = blocks.bedrock
-stone = blocks.stone
-dirt = blocks.dirt
-grass = blocks.grass
-barrier = blocks.barrier
