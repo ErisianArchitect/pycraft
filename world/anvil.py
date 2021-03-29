@@ -83,7 +83,7 @@ class RegionFile:
     # putting each chunk into a seperate files for easy modification.
     # Once the user is done modifying the chunks, they can save them back into the region file.
 
-    __slots__ = ('filename','chunks','sectors','loaded_chunks','loaded_indices')
+    __slots__ = ('filename','chunk_sectors','sectors','loaded_chunks','loaded_indices')
 
     @staticmethod
     def get_index(x : int, z : int):
@@ -107,7 +107,7 @@ class RegionFile:
 
     def __init__(self, filename : str):
         self.filename = filename
-        self.chunks = numpy.ndarray(shape=(1024), dtype=numpy.object_)
+        self.chunk_sectors = numpy.ndarray(shape=(1024), dtype=numpy.object_)
         self.sectors = []
         self.loaded_chunks = dict()
         self.loaded_indices = set()
@@ -125,10 +125,10 @@ class RegionFile:
                     sector_count = int.from_bytes(f.read(1), byteorder='big', signed=False)
                     if offset >= 2 and sector_count > 0:
                         sector = Sector(offset, sector_count)
-                        self.chunks[i] = sector
+                        self.chunk_sectors[i] = sector
                         bisect.insort(self.sectors, sector)
                     else:
-                        self.chunks[i] = None
+                        self.chunk_sectors[i] = None
     
     def save(self):
 
@@ -145,16 +145,22 @@ class RegionFile:
                 # This is where sector information and timestamps are stored.
                 outfile.write(null_sector)
                 outfile.write(null_sector)
-                # First write all the data while saving the sector information.
-                # After writing all the data, seek to the beginning of the file and write the header data.
+                # First write all the chunk data while saving the sector information.
+                # After writing all the chunk data, seek to the beginning of the file and write the header data.
                 new_sectors = numpy.ndarray(shape=(1024,), dtype=numpy.object_)
 
                 for i in range(1024):
+                    # Define a sector that this chunk will potentially take up.
+                    # The new sector will be (0,0) because we are not guaranteed
+                    # to have chunk data.
                     new_sect = Sector(0,0)
+                    # Set the new sector's offset according to the output file's offset divided by 4096.
                     new_sect.offset = outfile.tell() // 4096
+                    # Get the chunk coordinate from the index.
                     coord = RegionFile.expand_index(i)
+                    # Try to get a loaded chunk with the coordinate.
                     loaded_chunk = self.loaded_chunk.get(coord, None)
-
+                    
                     if loaded_chunk is not None and loaded_chunk.isDirty:
                         # TODO: Eventually I plan on writing a save function for Chunk that doesn't require converting to NBT.
                         chunk_nbt = loaded_chunk.to_nbt()
@@ -163,7 +169,6 @@ class RegionFile:
                         data_length = chunk_size + 1
                         total_size = chunk_size + 5
                         pad_size = 0 if ((total_size) % 4096) == 0 else (4096 - (total_size % 4096))
-
                         padded_size = total_size + pad_size
                         new_sect.count = padded_size // 4096
                         outfile.write(data_length.to_bytes(4, 'big', signed=False))
@@ -173,7 +178,7 @@ class RegionFile:
                         loaded_chunk.isDirty = False
                     else:
                         # The chunk hasn't been loaded, so we'll just write it from the infile.
-                        sect = self.chunks[i]
+                        sect = self.chunk_sectors[i]
                         if sect is not None:
                             infile.seek(sect.offset * 4096)
                             outfile.write(infile.read(4096 * sect.count))
