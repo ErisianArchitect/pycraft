@@ -316,6 +316,7 @@ class Chunk:
                 return blocks.air
     
     def set(self, x, y, z, id, props={}):
+        # TODO: Check if the block will actually change anything before setting the isDirty flag.
         self.isDirty = True
         sect_y = y // 16
         chunk_y = y % 16
