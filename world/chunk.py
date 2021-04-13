@@ -318,9 +318,14 @@ class Chunk:
     def set(self, x, y, z, id, props={}):
         # TODO: Check if the block will actually change anything before setting the isDirty flag.
         self.isDirty = True
+        # The sections are 16 blocks high, so we can get our section index by dividing the y value
+        # by 16.
         sect_y = y // 16
+        # We can then get the local y value.
         chunk_y = y % 16
-        if -1 <= sect_y < 16:
+        # Constrain to 0-15 because we do not want to set blocks on any sections that may be outside
+        # of that range.
+        if 0 <= sect_y < 16:
             if sect_y in self.Sections:
                 self.Sections[sect_y].set(x,chunk_y,z,id, props)
             else:
