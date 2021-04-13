@@ -83,7 +83,7 @@ class RegionFile:
     # putting each chunk into a seperate files for easy modification.
     # Once the user is done modifying the chunks, they can save them back into the region file.
 
-    __slots__ = ('filename','chunk_sectors','sectors','loaded_chunks','loaded_indices')
+    __slots__ = ('filename','chunk_sectors','loaded_chunks','loaded_indices')
 
     @staticmethod
     def get_index(x : int, z : int):
@@ -108,7 +108,6 @@ class RegionFile:
     def __init__(self, filename : str):
         self.filename = filename
         self.chunk_sectors = numpy.ndarray(shape=(1024), dtype=numpy.object_)
-        self.sectors = []
         self.loaded_chunks = dict()
         self.loaded_indices = set()
         if not os.path.exists(self.filename):
@@ -119,14 +118,12 @@ class RegionFile:
                 size = f.tell()
                 f.seek(0)
 
-                self.sectors.append(Sector(0, 2))
                 for i in range(1024):
                     offset = int.from_bytes(f.read(3), byteorder='big', signed=False)
                     sector_count = int.from_bytes(f.read(1), byteorder='big', signed=False)
                     if offset >= 2 and sector_count > 0:
                         sector = Sector(offset, sector_count)
                         self.chunk_sectors[i] = sector
-                        bisect.insort(self.sectors, sector)
                     else:
                         self.chunk_sectors[i] = None
     
@@ -159,7 +156,7 @@ class RegionFile:
                     # Get the chunk coordinate from the index.
                     coord = RegionFile.expand_index(i)
                     # Try to get a loaded chunk with the coordinate.
-                    loaded_chunk = self.loaded_chunk.get(coord, None)
+                    loaded_chunk = self.loaded_chunks.get(coord, None)
                     
                     if loaded_chunk is not None and loaded_chunk.isDirty:
                         # TODO: Eventually I plan on writing a save function for Chunk that doesn't require converting to NBT.
