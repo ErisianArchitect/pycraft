@@ -21,3 +21,15 @@ class ChunkManager(ABC):
     @abstractmethod
     def save(self):
         pass
+
+class AnvilChunkManager(ChunkManager):
+    __slots__ = ('region_folder', 'regions')
+
+    def __init__(self, region_folder):
+        self.region_folder = region_folder
+
+    def get(self, x : int, y : int, z : int):
+        pass
+
+    def save(self):
+        pass
