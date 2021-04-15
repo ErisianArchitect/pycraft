@@ -184,6 +184,7 @@ class RegionFile:
                             new_sect.offset = 0
                             new_sect.count = 0
                     new_sectors[i] = new_sect if new_sect.count > 0 and new_sect.offset >= 2 else None
+                self.chunk_sectors = new_sectors
                 # Now we will write the sector information to the file.
                 outfile.seek(0)
                 null_data4 = b'\x00\x00\x00\x00'
