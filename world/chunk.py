@@ -147,7 +147,7 @@ class ChunkSection:
         return blockregistry.find(self.Blocks[y*256 + z*16 + x])
     
     # TODO: Update lighting and heightmaps
-    def set(self, x, y, z, id, props = {}):
+    def set(self, x, y, z, id, props = None):
         if self.Blocks is None:
             return
         if type(id) == str:
