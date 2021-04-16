@@ -559,9 +559,7 @@ def read_tag_data(stream, id):
     if id == 9:
         tagid = read_byte(stream)
         size = read_int(stream)
-        items = []
-        for i in range(size):
-            items.append(read_tag_data(stream, tagid))
+        items = [read_tag_data(stream, tagid) for _ in range(size)]
         return t_list(tagid, items)
     if id == 10:
         items = dict()
@@ -574,15 +572,11 @@ def read_tag_data(stream, id):
         return t_compound(items)
     if id == 11:
         size = read_int(stream)
-        items = []
-        for i in range(size):
-            items.append(read_int(stream))
+        items = [read_int(stream) for _ in range(size)]
         return t_ints(items)
     if id == 12:
         size = read_int(stream)
-        items = []
-        for i in range(size):
-            items.append(read_long(stream))
+        items = [read_long(stream) for _ in range(size)]
         return t_longs(items)
 
 def write_tag_data(tag : nbt_tag, stream):
