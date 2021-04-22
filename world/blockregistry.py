@@ -2,10 +2,6 @@
 This module is for the block state registry. All block states are registered here.
 """
 
-# TODO: This code file is slightly ambiguous with blocks.py, and the two could possible be confused.
-#       Lets rename this to blockregistry.py.
-#       I'm writing this as a TODO because I'm about to go to sleep, and want to work on it tomorrow.
-
 import functools
 from . import nbt
 
