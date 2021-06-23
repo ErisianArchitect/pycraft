@@ -193,7 +193,7 @@ class Heightmaps:
         #   And that is how this one-liner works.
         #   I know this comment seems excessive, but I would hate for anyone to look at this gargantuan
         #   one-liner and think to themselves "What the fuck does this even do?"
-        #   The anwer to that question is that it extracts a 9-bit value from a 64-bit value within an
+        #   The answer to that question is that it extracts a 9-bit value from a 64-bit value within an
         #   array of 64-bit values.
         extract = lambda index: (result[index // 7] & (0x1FF << ((index % 7) * 9))) >> ((index % 7) * 9)
         for i in range(256):
