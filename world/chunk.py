@@ -210,17 +210,17 @@ class Heightmaps:
         for i in range(256):
             resindex = i // 7
             subind = i % 7
-            result[resind] = inject(result[resind], subind, arr[i])
+            result[resindex] = inject(result[resindex], subind, arr[i])
         return result
         
 
     __slots__ = ('ocean_floor', 'motion_blocking_no_leaves', 'motion_blocking', 'world_surface')
 
     def __init__(self, heightmaps_tag : nbt.t_compound):
-        self.ocean_floor = unpack_heightmap(heightmaps_tag['OCEAN_FLOOR'].data)
-        self.motion_blocking_no_leaves = unpack_heightmap(heightmaps_tag['MOTION_BLOCKING_NO_LEAVES'].data)
-        self.motion_blocking = unpack_heightmap(heightmaps_tag['MOTION_BLOCKING'].data)
-        self.world_surface = unpack_heightmap(heightmaps_tag['WORLD_SURFACE'].data)
+        self.ocean_floor = Heightmaps.unpack_heightmap(heightmaps_tag['OCEAN_FLOOR'].data)
+        self.motion_blocking_no_leaves = Heightmaps.unpack_heightmap(heightmaps_tag['MOTION_BLOCKING_NO_LEAVES'].data)
+        self.motion_blocking = Heightmaps.unpack_heightmap(heightmaps_tag['MOTION_BLOCKING'].data)
+        self.world_surface = Heightmaps.unpack_heightmap(heightmaps_tag['WORLD_SURFACE'].data)
     
     def to_nbt(self):
         pass
