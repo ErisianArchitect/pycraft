@@ -337,7 +337,9 @@ class t_bytes(nbt_tag):
             self.data = data
     
     def __getitem__(self, index):
-        return self.data[index]
+        if 0 <= index < len(self.data):
+            return self.data[index]
+        raise IndexError()
     
     def __setitem__(self, index, value):
         self.data[index] = value
@@ -373,7 +375,9 @@ class t_ints(nbt_tag):
             self.data = data
     
     def __getitem__(self, index):
-        return self.data[index]
+        if 0 <= index < len(self.data):
+            return self.data[index]
+        raise IndexError()
     
     def __setitem__(self, index, value):
         self.data[index] = value
@@ -409,7 +413,9 @@ class t_longs(nbt_tag):
             self.data = data
     
     def __getitem__(self, index):
-        return self.data[index]
+        if 0 <= index < len(self.data):
+            return self.data[index]
+        raise IndexError()
     
     def __setitem__(self, index, value):
         self.data[index] = value
@@ -453,7 +459,9 @@ class t_list(nbt_tag):
             self.data = list()
     
     def __getitem__(self, index):
-        return self.data[index]
+        if 0 <= index < len(self.data):
+            return self.data[index]
+        raise IndexError()
     
     def __len__(self):
         return len(self.data)
@@ -495,7 +503,9 @@ class t_compound(nbt_tag):
         self.data = dict(data)
     
     def __getitem__(self, id):
-        return self.data.get(id, None)
+        if id in self.data:
+            return self.data[id]
+        raise KeyError()
     
     def __setitem__(self, id, value):
         if issubclass(type(value), nbt_tag):
