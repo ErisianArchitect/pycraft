@@ -230,9 +230,15 @@ class Heightmaps:
 # TODO: Figure out what data to populate a new chunk with.
 # TODO: Currently, the bottom and top ChunkSections are not valid sections to place blocks in. Figure out how to change that.
 class Chunk:
-    __slots__ = ('Biomes', 'CarvingMasks', 'DataVersion', 'Entities', 'Heightmaps', 'InhabitedTime', 'LastUpdate', 'Lights', 'LiquidTicks', 'LiquidsToBeTicked', 'PostProcessing', 'Sections', 'Status', 'Structures', 'TileEntities', 'TileTicks', 'ToBeTicked', 'xPos', 'zPos','isDirty')
+    # _level_tag_slots = ('Biomes', 'CarvingMasks', 'Entities', 'Heightmaps', 'Lights', 'LiquidTicks', 'LiquidsToBeTicked', 'PostProcessing', 'Status', 'Structures', 'TileEntities', 'TileTicks', 'ToBeTicked')
+    class Tags:
+        __slots__ = ('Biomes', 'CarvingMasks', 'Entities', 'Heightmaps', 'Lights', 'LiquidTicks', 'LiquidsToBeTicked', 'PostProcessing', 'Status', 'Structures', 'TileEntities', 'TileTicks', 'ToBeTicked')
 
-    _level_tag_slots = ('Biomes', 'CarvingMasks', 'Entities', 'Heightmaps', 'Lights', 'LiquidTicks', 'LiquidsToBeTicked', 'PostProcessing', 'Status', 'Structures', 'TileEntities', 'TileTicks', 'ToBeTicked')
+    # This is the old __slots__, which would need to be updated every time _level_tag_slots was updated.
+    # __slots__ = ('Biomes', 'CarvingMasks', 'DataVersion', 'Entities', 'Heightmaps', 'InhabitedTime', 'LastUpdate', 'Lights', 'LiquidTicks', 'LiquidsToBeTicked', 'PostProcessing', 'Sections', 'Status', 'Structures', 'TileEntities', 'TileTicks', 'ToBeTicked', 'xPos', 'zPos','isDirty')
+    # This is the new and improved __slots__. It automatically updates when _level_tag_slots is updated.
+    __slots__ = ('tags', 'DataVersion', 'InhabitedTime', 'LastUpdate', 'Sections', 'xPos', 'zPos', 'isDirty')
+
 
     # Tags that will not have values:
     #   CarvingMasks
@@ -256,12 +262,12 @@ class Chunk:
         for section in sections.data:
             tmp = ChunkSection.from_nbt(section)
             self.Sections[tmp.Y] = tmp
-
-        for slot in Chunk._level_tag_slots:
+        self.tags = Chunk.Tags()
+        for slot in Chunk.Tags.__slots__:
             if slot in level_tag:
-                setattr(self, slot, level_tag[slot])
+                setattr(self.tags, slot, level_tag[slot])
             else:
-                setattr(self, slot, None)
+                setattr(self.tags, slot, None)
 
     def to_nbt(self):
         items = {}
