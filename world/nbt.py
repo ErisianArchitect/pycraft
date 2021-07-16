@@ -144,9 +144,7 @@ class t_short(nbt_tag):
         stream.write(struct.pack('>h', self.value))
     
     def to_bytes(self) -> bytes:
-        with io.BytesIO() as buffer:
-            self.write(buffer)
-            return buffer.getvalue()
+        struct.pack('>h', self.value)
     
     def copy(self) -> nbt_tag:
         return t_short(self.value)
@@ -179,9 +177,7 @@ class t_int(nbt_tag):
         stream.write(struct.pack('>i', self.value))
     
     def to_bytes(self) -> bytes:
-        with io.BytesIO() as buffer:
-            self.write(buffer)
-            return buffer.getvalue()
+        struct.pack('>i', self.value)
     
     def copy(self) -> nbt_tag:
         return t_int(self.value)
@@ -213,9 +209,7 @@ class t_long(nbt_tag):
         stream.write(struct.pack('>q', self.value))
     
     def to_bytes(self) -> bytes:
-        with io.BytesIO() as buffer:
-            self.write(buffer)
-            return buffer.getvalue()
+        struct.pack('>q', self.value)
     
     def copy(self) -> nbt_tag:
         return t_long(self.value)
@@ -242,9 +236,7 @@ class t_float(nbt_tag):
         stream.write(struct.pack('>f', self.value))
     
     def to_bytes(self) -> bytes:
-        with io.BytesIO() as buffer:
-            self.write(buffer)
-            return buffer.getvalue()
+        struct.pack('>f', self.value)
     
     def copy(self) -> nbt_tag:
         return t_float(self.value)
@@ -271,9 +263,7 @@ class t_double(nbt_tag):
         stream.write(struct.pack('>d', self.value))
     
     def to_bytes(self) -> bytes:
-        with io.BytesIO() as buffer:
-            self.write(buffer)
-            return buffer.getvalue()
+        struct.pack('>d', self.value)
     
     def copy(self) -> nbt_tag:
         return t_double(self.value)
@@ -305,9 +295,7 @@ class t_string(nbt_tag):
         stream.write(self.value.encode('utf-8'))
     
     def to_bytes(self) -> bytes:
-        with io.BytesIO() as buffer:
-            self.write(buffer)
-            return buffer.getvalue()
+        struct.pack('>h', len(self.value)) + self.value.encode('utf-8')
     
     def copy(self) -> nbt_tag:
         return t_string(self.value)
