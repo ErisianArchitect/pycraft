@@ -135,8 +135,14 @@ class RegionFile:
         When it encounters a chunk that has been loaded, it will write that chunk to the file instead
         of the data that is in the region file.
         """
+        # TODO: Add checks for if self.filename exists.
+        #       Throw exception if it fails.
+        if not os.path.isfile(self.filename):
+            raise FileNotFoundError(self.filename)
+        # Create temporary output file to write to.
         output_path = self.filename + '.out'
         with open(output_path, 'wb') as outfile:
+            # Open the region file that this instance points to.
             with open(self.filename, 'rb') as infile:
                 # First write 8192 bytes to the file.
                 # This is where sector information and timestamps are stored.
@@ -146,6 +152,7 @@ class RegionFile:
                 # After writing all the chunk data, seek to the beginning of the file and write the header data.
                 new_sectors = numpy.ndarray(shape=(1024,), dtype=numpy.object_)
 
+                # Loop through the 1024 possible chunks and write them to the file if they exist in some manner.
                 for i in range(1024):
                     # Define a sector that this chunk will potentially take up.
                     # The new sector will be (0,0) because we are not guaranteed
