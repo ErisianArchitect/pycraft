@@ -98,14 +98,27 @@ class t_byte(nbt_tag):
             raise ValueError('Invalid value.')
     
     def write(self, stream):
+        """
+        Writes the value of this t_byte to a stream.
+        : stream :  Can be any value that has a function called `write` that
+                    accepts `bytes` as input.
+        """
         stream.write(struct.pack('>b', self.value))
     
     def to_bytes(self) -> bytes:
+        """
+        Creates a bytes objects that is a representation of this value.
+        """
+        # I made a bafoon of myself.
+        # TODO: Fix this because it should just be struct.pack('>b', self.value)
         with io.BytesIO() as buffer:
             self.write(buffer)
             return buffer.getvalue()
     
     def copy(self) -> nbt_tag:
+        """
+        Creates a copy of this tag.
+        """
         return t_byte(self.value)
     
     def __eq__(self, other):
