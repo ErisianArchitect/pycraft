@@ -1,3 +1,7 @@
+"""
+This module contains the RegionFile class.
+"""
+
 import os
 from os import path
 import gzip

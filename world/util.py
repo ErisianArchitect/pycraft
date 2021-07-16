@@ -1,3 +1,7 @@
+"""
+These are functions that may be used throughout the codebase.
+"""
+
 import math
 import struct
 
