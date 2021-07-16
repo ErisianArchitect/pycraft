@@ -82,7 +82,7 @@ class t_byte(nbt_tag):
     Represents an 8-bit signed integer.
     Range is -128 to 127.
     """
-    __slots__ = ('value',)
+    __slots__ = {'value',}
 
     def __init__(self, value=0):
         """
@@ -131,7 +131,7 @@ class t_byte(nbt_tag):
         return str(self.value)
 
 class t_short(nbt_tag):
-    __slots__ = ('value',)
+    __slots__ = {'value'}
 
     def __init__(self, value=0):
         if -2**15 <= value < 2**15:
@@ -164,7 +164,7 @@ class t_short(nbt_tag):
 
 
 class t_int(nbt_tag):
-    __slots__ = ('value',)
+    __slots__ = {'value'}
 
     def __init__(self, value=0):
         if -2**31 <= value < 2**31:
@@ -196,7 +196,7 @@ class t_int(nbt_tag):
         return str(self.value)
 
 class t_long(nbt_tag):
-    __slots__ = ('value',)
+    __slots__ = {'value'}
 
     def __init__(self, value=0):
         if -2**63 <= value < 2**63:
@@ -228,7 +228,7 @@ class t_long(nbt_tag):
         return str(self.value)
 
 class t_float(nbt_tag):
-    __slots__ = ('value',)
+    __slots__ = {'value'}
 
     def __init__(self, value=0.0):
         self.value = float(value)
@@ -255,7 +255,7 @@ class t_float(nbt_tag):
         return str(self.value)
 
 class t_double(nbt_tag):
-    __slots__ = ('value',)
+    __slots__ = {'value'}
 
     def __init__(self, value=0):
         self.value = float(value)
@@ -286,7 +286,7 @@ class t_double(nbt_tag):
         return str(self.value)
 
 class t_string(nbt_tag):
-    __slots__ = ('value',)
+    __slots__ = {'value'}
 
     def __init__(self, value :str =''):
         self.value = value
@@ -327,7 +327,7 @@ class t_string(nbt_tag):
         return repr(self.value)
 
 class t_bytes(nbt_tag):
-    __slots__ = ('data',)
+    __slots__ = {'data'}
 
     def __init__(self, data=numpy.array([],dtype='>i1')):
         if type(data) == list:
@@ -367,7 +367,7 @@ class t_bytes(nbt_tag):
             return numpy.array_equal(self.data, other)
 
 class t_ints(nbt_tag):
-    __slots__ = ('data',)
+    __slots__ = {'data'}
 
     def __init__(self, data=numpy.array([],dtype='>i4')):
         if type(data) == list:
@@ -405,7 +405,7 @@ class t_ints(nbt_tag):
         return t_ints(self.data)
 
 class t_longs(nbt_tag):
-    __slots__ = ('data',)
+    __slots__ = {'data'}
 
     def __init__(self, data=numpy.array([], dtype='>i8')):
         if type(data) == list:
@@ -443,7 +443,7 @@ class t_longs(nbt_tag):
         return t_longs(self.data)
 
 class t_list(nbt_tag):
-    __slots__ = ('data', 'type')
+    __slots__ = {'data', 'type'}
 
     def __init__(self, tag_type, data=None):
         if type(tag_type) == int:
