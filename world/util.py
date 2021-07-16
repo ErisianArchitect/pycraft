@@ -1,4 +1,5 @@
 import math
+import struct
 
 def sbyte_to_byte(v):
     if 0 <= v < 128:
