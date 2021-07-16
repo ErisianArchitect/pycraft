@@ -109,11 +109,7 @@ class t_byte(nbt_tag):
         """
         Creates a bytes objects that is a representation of this value.
         """
-        # I made a bafoon of myself.
-        # TODO: Fix this because it should just be struct.pack('>b', self.value)
-        with io.BytesIO() as buffer:
-            self.write(buffer)
-            return buffer.getvalue()
+        struct.pack('>b', self.value)
     
     def copy(self) -> nbt_tag:
         """
