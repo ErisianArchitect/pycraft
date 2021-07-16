@@ -19,34 +19,50 @@ from . import util
 from . import nbtutil
 import numpy
 
-__all__ = ['t_byte', 't_short', 't_int', 't_long', 't_float', 't_double', 't_string', 't_list', 't_compound', 't_bytes','t_ints', 't_longs', 'load', 'dump']
+__all__ = [
+    'nbt_tag',
+    't_byte',
+    't_short',
+    't_int',
+    't_long',
+    't_float',
+    't_double',
+    't_string',
+    't_list',
+    't_compound',
+    't_bytes',
+    't_ints', 
+    't_longs',
+    'load',
+    'dump'
+    ]
 
-def read_byte(stream):
+def _read_byte(stream):
     return int.from_bytes(stream.read(1),'big',signed=True)
 
-def read_short(stream):
+def _read_short(stream):
     return int.from_bytes(stream.read(2), 'big', signed=True)
 
-def read_ushort(stream):
+def _read_ushort(stream):
     return int.from_bytes(stream.read(2), 'big', signed=False)
 
-def read_int(stream):
+def _read_int(stream):
     return int.from_bytes(stream.read(4), 'big', signed=True)
 
-def read_long(stream):
+def _read_long(stream):
     return int.from_bytes(stream.read(8), 'big', signed=True)
 
-def read_float(stream):
+def _read_float(stream):
     return struct.unpack('>f', stream.read(4))[0]
 
-def read_double(stream):
+def _read_double(stream):
     return struct.unpack('>d', stream.read(8))[0]
 
-def read_string(stream):
-    length = read_ushort(stream)
+def _read_string(stream):
+    length = _read_ushort(stream)
     return stream.read(length).decode('utf-8')
 
-def write_fmt(stream, fmt, value):
+def _write_fmt(stream, fmt, value):
     stream.write(struct.pack(fmt, value))
 
 class nbt_tag(ABC):
@@ -449,8 +465,8 @@ class t_list(nbt_tag):
         return False
     
     def write(self, stream):
-        write_fmt(stream, '>B', self.type)
-        write_fmt(stream, '>i', len(self.data))
+        _write_fmt(stream, '>B', self.type)
+        _write_fmt(stream, '>i', len(self.data))
         for v in self.data:
             v.write(stream)
     
@@ -539,44 +555,44 @@ class t_compound(nbt_tag):
 
 def read_tag_data(stream, id):
     if id == 1:
-        return t_byte(read_byte(stream))
+        return t_byte(_read_byte(stream))
     if id == 2:
-        return t_short(read_short(stream))
+        return t_short(_read_short(stream))
     if id == 3:
-        return t_int(read_int(stream))
+        return t_int(_read_int(stream))
     if id == 4:
-        return t_long(read_long(stream))
+        return t_long(_read_long(stream))
     if id == 5:
-        return t_float(read_float(stream))
+        return t_float(_read_float(stream))
     if id == 6:
-        return t_double(read_double(stream))
+        return t_double(_read_double(stream))
     if id == 7:
-        size = read_int(stream)
+        size = _read_int(stream)
         return t_bytes(stream.read(size))
     if id == 8:
-        size = read_ushort(stream)
+        size = _read_ushort(stream)
         return t_string(stream.read(size).decode('utf-8'))
     if id == 9:
-        tagid = read_byte(stream)
-        size = read_int(stream)
+        tagid = _read_byte(stream)
+        size = _read_int(stream)
         items = [read_tag_data(stream, tagid) for _ in range(size)]
         return t_list(tagid, items)
     if id == 10:
         items = dict()
-        tagid = read_byte(stream)
+        tagid = _read_byte(stream)
         while tagid != 0:
-            tag_name = read_string(stream)
+            tag_name = _read_string(stream)
             tag = read_tag_data(stream, tagid)
             items[tag_name] = tag
-            tagid = read_byte(stream)
+            tagid = _read_byte(stream)
         return t_compound(items)
     if id == 11:
-        size = read_int(stream)
-        items = [read_int(stream) for _ in range(size)]
+        size = _read_int(stream)
+        items = [_read_int(stream) for _ in range(size)]
         return t_ints(items)
     if id == 12:
-        size = read_int(stream)
-        items = [read_long(stream) for _ in range(size)]
+        size = _read_int(stream)
+        items = [_read_long(stream) for _ in range(size)]
         return t_longs(items)
 
 def write_tag_data(tag : nbt_tag, stream):
@@ -622,8 +638,8 @@ def load(data : bytes) ->tuple:
     Returns a tuple with the order of (tag, name).
     """
     with io.BytesIO(data) as stream:
-        tag_id = read_byte(stream)
-        name = read_string(stream)
+        tag_id = _read_byte(stream)
+        name = _read_string(stream)
         tag = read_tag_data(stream, tag_id)
         return tag, name
 
