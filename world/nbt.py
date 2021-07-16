@@ -15,6 +15,7 @@ from abc import ABC, abstractmethod
 import struct
 import io
 from functools import partial
+import typing
 from . import util
 from . import nbtutil
 import numpy
@@ -495,6 +496,7 @@ class t_list(nbt_tag):
 
 class t_compound(nbt_tag):
     __slots__ = ('data',)
+    data : dict
 
     def __init__(self, data : dict):
         """
@@ -540,17 +542,23 @@ class t_compound(nbt_tag):
     def __eq__(self, other):
         if type(other) == t_compound and len(self.data) == len(other.data):
             for k, v in self.data.items():
-                if other.data[k] != v:
+                if k not in other.data or other.data[k] != v:
                     return False
             return True
         if type(other) == dict and len(self.data) == len(other):
             for k, v in self.data.items():
-                if other[k] != v:
+                if k not in other or other[k] != v:
                     return False
             return True
         return False
     
-    def items(self):
+    def keys(self) -> typing.KeysView:
+        return self.data.keys()
+    
+    def values(self) -> typing.ValuesView:
+        return self.data.values()
+    
+    def items(self) -> typing.ItemsView:
         return self.data.items()
     
     def write(self, stream):
