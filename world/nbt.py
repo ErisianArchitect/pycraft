@@ -495,7 +495,7 @@ class t_list(nbt_tag):
         return t_list(self.type, self.data)
 
 class t_compound(nbt_tag):
-    __slots__ = ('data',)
+    __slots__ = {'data'}
     data : dict
 
     def __init__(self, data : dict):
@@ -508,6 +508,9 @@ class t_compound(nbt_tag):
         if id in self.data:
             return self.data[id]
         raise KeyError()
+    
+    def get(self, id, default=None):
+        return self.data.get(id, default)
     
     def __setitem__(self, id, value):
         if issubclass(type(value), nbt_tag):
