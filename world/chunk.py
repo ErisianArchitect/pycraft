@@ -1,3 +1,7 @@
+"""
+This module contains the Chunk and ChunkSection classes.
+"""
+
 import math
 import numpy
 from . import util
