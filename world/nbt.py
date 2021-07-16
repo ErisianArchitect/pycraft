@@ -77,15 +77,25 @@ class nbt_tag(ABC):
         pass
 
 class t_byte(nbt_tag):
+    """
+    Represents an 8-bit signed integer.
+    Range is -128 to 127.
+    """
     __slots__ = ('value',)
 
     def __init__(self, value=0):
+        """
+        Range of value is -128 to 127.
+        If the value is from 128 to 255, the value will be adjusted to comply.
+        If the value is outside of the total possible range, a ValueError will
+        be raised.
+        """
         if -128 <= value < 128:
             self.value = value
         elif 128 <= value < 256:
             self.value = value - 256
         else:
-            raise Exception('Invalid value.')
+            raise ValueError('Invalid value.')
     
     def write(self, stream):
         stream.write(struct.pack('>b', self.value))
