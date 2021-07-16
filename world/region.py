@@ -135,8 +135,6 @@ class RegionFile:
         When it encounters a chunk that has been loaded, it will write that chunk to the file instead
         of the data that is in the region file.
         """
-        # TODO: Add checks for if self.filename exists.
-        #       Throw exception if it fails.
         if not os.path.isfile(self.filename):
             raise FileNotFoundError(self.filename)
         # Create temporary output file to write to.
