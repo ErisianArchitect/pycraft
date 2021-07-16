@@ -1,3 +1,7 @@
+"""
+This file should only be imported if you want to pre-register every single block in Minecraft.
+"""
+
 #   Auto-generated code file.
 from . import blockregistry
 
