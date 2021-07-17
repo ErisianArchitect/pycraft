@@ -228,7 +228,7 @@ class RegionFile:
             f.seek(ind * 4)
             chunk_offset = int.from_bytes(f.read(3),'big')
             if chunk_offset == 0:
-                return
+                return None
             f.seek(chunk_offset * 4096)
             data_length = int.from_bytes(f.read(4),'big')
             compression_type = int.from_bytes(f.read(1),'big')
