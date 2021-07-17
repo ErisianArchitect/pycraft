@@ -35,3 +35,6 @@ class AnvilChunkManager(ChunkManager):
 
     def save(self):
         pass
+
+class World:
+    pass
