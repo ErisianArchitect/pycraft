@@ -470,7 +470,7 @@ class t_list(nbt_tag):
     def __getattr__(self, attr):
         try:
             return getattr(self.data, attr)
-        except Exception as e:
+        except AttributeError as e:
             raise e
 
     def __eq__(self, other):
