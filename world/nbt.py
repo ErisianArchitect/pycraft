@@ -139,7 +139,7 @@ class t_short(nbt_tag):
         elif 2**15 <= value < 2**16:
             self.value = value - 2**16
         else:
-            raise Exception('Invalid value.')
+            raise ValueError('Invalid value.')
     
     def write(self, stream):
         stream.write(struct.pack('>h', self.value))
@@ -172,7 +172,7 @@ class t_int(nbt_tag):
         elif 2**31 <= value < 2**32:
             self.value = value - 2**32
         else:
-            raise Exception('Invalid value.')
+            raise ValueError('Invalid value.')
     
     def write(self, stream):
         stream.write(struct.pack('>i', self.value))
@@ -204,7 +204,7 @@ class t_long(nbt_tag):
         elif 2**63 <= value < 2**64:
             self.value = value - 2**64
         else:
-            raise Exception('Invalid value.')
+            raise ValueError('Invalid value.')
     
     def write(self, stream):
         stream.write(struct.pack('>q', self.value))
