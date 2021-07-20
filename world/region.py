@@ -207,6 +207,8 @@ class RegionFile:
         os.replace(output_path, self.filename)
 
     def read_chunk(self, offsetX : int, offsetZ : int) -> chunk.Chunk:
+        if (offsetX, offsetZ) in self.loaded_chunks:
+            return self.loaded_chunks[offsetX, offsetZ]
         result = self.read_chunk_tag(offsetX, offsetZ)
         if result is not None:
             ch = chunk.Chunk(result[0])
