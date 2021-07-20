@@ -216,6 +216,10 @@ class RegionFile:
             self.loaded_indices.add(RegionFile.get_index(offsetX, offsetZ))
             return ch
     
+    def unload_chunk(self, offsetX : int, offsetZ : int) -> None:
+        if (offsetX, offsetZ) in self.loaded_chunks:
+            del self.loaded_chunks[offsetX, offsetZ]
+    
     # TODO: Determine if this function is necessary, or if it can be moved into read_chunk(...)
     def read_chunk_tag(self, offsetX : int, offsetZ : int) -> nbt.nbt_tag:
         """
