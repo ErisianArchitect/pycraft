@@ -672,6 +672,11 @@ def load(data : bytes) ->tuple:
         return tag, name
 
 def dump(tag : nbt_tag, name : str = None) -> bytes:
+    """
+    Converts an NBT tag into bytes.
+    : tag :     The tag that you would like to convert to bytes.
+    : name :    The name of the tag. If None, name will not be written.
+    """
     with io.BytesIO() as stream:
         stream.write(_byte_format.pack(tag_type_table[type(tag)]))
         if name and len(name) > 0:
