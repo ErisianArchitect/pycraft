@@ -16,8 +16,6 @@ import struct
 import io
 from functools import partial
 import typing
-from . import util
-from . import nbtutil
 import numpy
 
 __all__ = [
@@ -35,7 +33,15 @@ __all__ = [
     't_ints', 
     't_longs',
     'load',
-    'dump'
+    'dump',
+    '_read_byte',
+    '_read_short',
+    '_read_ushort',
+    '_read_int',
+    '_read_long',
+    '_read_float',
+    '_read_double',
+    '_read_string'
     ]
 
 def _read_byte(stream):
@@ -123,9 +129,9 @@ class t_byte(nbt_tag):
             return self.value == other.value
         else:
             try:
-                return int(other) == self.value
+                return self.value == other or int(other) == self.value
             except:
-                return self.value == other
+                return False
     
     def __repr__(self):
         return str(self.value)
@@ -257,7 +263,7 @@ class t_float(nbt_tag):
 class t_double(nbt_tag):
     __slots__ = {'value'}
 
-    def __init__(self, value=0):
+    def __init__(self, value=0.0):
         self.value = float(value)
     
     def write(self, stream):
@@ -288,7 +294,7 @@ class t_double(nbt_tag):
 class t_string(nbt_tag):
     __slots__ = {'value'}
 
-    def __init__(self, value :str =''):
+    def __init__(self, value :str = ''):
         self.value = value
     
     def write(self, stream):
@@ -329,7 +335,9 @@ class t_string(nbt_tag):
 class t_bytes(nbt_tag):
     __slots__ = {'data'}
 
-    def __init__(self, data=numpy.array([],dtype='>i1')):
+    def __init__(self, data=None):
+        if data is None:
+            numpy.array([],dtype='>i1')
         if type(data) == list:
             self.data = numpy.array(data, dtype='>i1')
         elif type(data) in {bytes, bytearray}:
@@ -369,7 +377,9 @@ class t_bytes(nbt_tag):
 class t_ints(nbt_tag):
     __slots__ = {'data'}
 
-    def __init__(self, data=numpy.array([],dtype='>i4')):
+    def __init__(self, data=None):
+        if data is None:
+            numpy.array([],dtype='>i4')
         if type(data) == list:
             self.data = numpy.array(data, dtype='>i4')
         else:
@@ -407,7 +417,9 @@ class t_ints(nbt_tag):
 class t_longs(nbt_tag):
     __slots__ = {'data'}
 
-    def __init__(self, data=numpy.array([], dtype='>i8')):
+    def __init__(self, data=None):
+        if data is None:
+            data = numpy.array([], dtype='>i8')
         if type(data) == list:
             self.data = numpy.array(data, dtype='>i8')
         else:
@@ -498,10 +510,12 @@ class t_compound(nbt_tag):
     __slots__ = {'data'}
     data : dict
 
-    def __init__(self, data : dict):
+    def __init__(self, data : dict = None):
         """
         data must be a dict where the keys are of type str, and the values are of type nbt_tag.
         """
+        if data is None:
+            data = {}
         self.data = dict(data)
     
     def __getitem__(self, id):
@@ -571,7 +585,7 @@ class t_compound(nbt_tag):
             stream.write(struct.pack('>H', len(k)))
             stream.write(k.encode('utf-8'))
             v.write(stream)
-        stream.write(b'\x00')
+        stream.write(_byte_format.pack(0))
     
     def to_bytes(self) -> bytes:
         with io.BytesIO() as buffer:
@@ -650,6 +664,7 @@ def write_tag_data(tag : nbt_tag, stream):
         stream.write(_int_format.pack(len(tag.data)))
         for v in tag.data:
             write_tag_data(v, stream)
+        print('list')
         return
     if type(tag) == t_compound:
         for k, v in tag.data.items():
@@ -657,7 +672,7 @@ def write_tag_data(tag : nbt_tag, stream):
             stream.write(_ushort_format.pack(len(k)))
             stream.write(k.encode('utf-8'))
             write_tag_data(v)
-        stream.write(b'\x00')
+        stream.write(_byte_format.pack(0))
         return
 
 def load(data : bytes) ->tuple:
@@ -686,6 +701,36 @@ def dump(tag : nbt_tag, name : str = None) -> bytes:
             stream.write(b'\x00\x00')
         tag.write(stream)
         return stream.getvalue()
+
+def dumps(tag : nbt_tag):
+    if type(tag) in {t_byte, t_short, t_int, t_long, t_float, t_double}:
+        print(tag.value)
+    if type(tag) is t_string:
+        print(repr(tag.value), end='')
+    if type(tag) in {t_bytes, t_ints, t_longs}:
+        first = True
+        print('[', end='')
+        for v in tag.data:
+            if not first:
+                print(', ', end='')
+            else:
+                first = False
+            print(v, end='')
+        print(']', end='')
+    if type(tag) is t_list:
+        tag : t_list
+        ltype = tag_id_table.get(tag.type, 'NULL')
+        print(f'list<{ltype}>[')
+        for v in tag.data:
+            dumps(v)
+        print(']')
+    if type(tag) is t_compound:
+        tag : t_compound
+        print('compound\n{')
+        for k, v in tag.data.items():
+            print(repr(k), end=' : ')
+            dumps(v)
+        print('}')
 
 tag_id_table = {
     1 : 'TAG_Byte',

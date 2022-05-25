@@ -4,7 +4,6 @@ This module contains the Chunk and ChunkSection classes.
 
 import math
 import numpy
-from . import util
 from . import nbt
 from . import blockregistry
 from . import blocks
@@ -249,6 +248,7 @@ class Chunk:
     #   Lights (I believe this is used for worldgen)
     #   LiquidsToBeTicked
     def __init__(self, chunk_tag):
+        chunk_tag = chunk_tag['']
         self.isDirty = False
         self.DataVersion = chunk_tag['DataVersion'].value
         level_tag = chunk_tag['Level']
