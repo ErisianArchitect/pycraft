@@ -621,12 +621,10 @@ def read_tag_data(stream, id):
         return t_list(tagid, items)
     if id == 10:
         items = dict()
-        tagid = _read_byte(stream)
-        while tagid != 0:
+        while tagid := _read_byte(stream):
             tag_name = _read_string(stream)
             tag = read_tag_data(stream, tagid)
             items[tag_name] = tag
-            tagid = _read_byte(stream)
         return t_compound(items)
     if id == 11:
         size = _read_int(stream)
